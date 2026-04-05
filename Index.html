@@ -3,90 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vibe App - OIO ONE</title>
+    <title>Vibe - OIO ONE</title>
+    <link rel="manifest" href="manifest.json">
     <style>
-        /* CSS DE LUXO - ARQUITETURA PREMIUM */
+        /* DESIGN DE LUXO DARK */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #000; color: #fff; overflow-x: hidden; padding-bottom: 70px; }
+        body { background: #000; color: #fff; padding-bottom: 70px; }
         
-        .app-screen { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+        .screen { display: none; min-height: 100vh; animation: fadeIn 0.3s ease; }
         .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* HEADER FIXO */
-        .header { background: #121212; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
-        .header h1 { color: #1877f2; font-size: 24px; font-weight: 800; }
+        /* HEADER ESTILO PLAY STORE */
+        .top-bar { background: #121212; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        .top-bar h1 { color: #1877f2; font-size: 22px; font-weight: 800; }
 
-        /* FEED & CARDS */
-        .post-card { background: #1c1c1c; margin: 10px 0; padding: 15px; border-radius: 15px; }
-        .avatar { width: 45px; height: 45px; background: #3a3a3a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        /* CARDS E CONTEÚDO */
+        .card { background: #1c1c1c; margin: 12px; padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .profile-img { width: 50px; height: 50px; border-radius: 50%; background: #3a3a3a; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: #1877f2; }
 
-        /* CHAT SYSTEM */
-        #chat-content { height: 70vh; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 80%; padding: 12px; border-radius: 18px; font-size: 15px; }
-        .sent { background: #1877f2; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .received { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+        /* CHAT REALTIME */
+        #chat-window { height: 65vh; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 15px; font-size: 15px; }
+        .me { background: #1877f2; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .other { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
 
         /* NAV INFERIOR */
-        nav { background: #121212; position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; z-index: 1000; }
-        nav button { background: none; border: none; color: #888; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
-        nav button.active-link { color: #1877f2; }
+        nav { background: #121212; position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #333; }
+        nav button { background: none; border: none; color: #888; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        nav button.active-btn { color: #1877f2; }
     </style>
 </head>
 <body>
 
-    <div id="screen-home" class="app-screen active">
-        <div class="header"><h1>Vibe</h1><div class="avatar">M</div></div>
-        <div style="padding: 20px; text-align: center; color: #888;">
-            <h2>Bem-vindo, Michel</h2>
-            <p>Seu ecossistema modular está online.</p>
+    <div id="home" class="screen active">
+        <div class="top-bar"><h1>Vibe</h1><div class="profile-img">M</div></div>
+        <div class="card">
+            <p style="color: #aaa;">O que você está pensando, Michel?</p>
+            <p style="font-size: 13px; margin-top: 10px;">Feed de Postagens carregando...</p>
         </div>
-        <div class="post-card"><strong>Pipoco:</strong> OIO ONE carregado com sucesso!</div>
     </div>
 
-    <div id="screen-chat" class="app-screen">
-        <div class="header"><h1>Mensagens</h1></div>
-        <div id="chat-content">
-            <div class="bubble received">Olá! Como está o projeto OIO ONE?</div>
+    <div id="chat" class="screen">
+        <div class="top-bar"><h1>Mensagens</h1></div>
+        <div id="chat-window">
+            <div class="msg other">Bem-vindo ao Chat do OIO ONE!</div>
         </div>
-        <div style="position: fixed; bottom: 80px; width: 100%; padding: 10px; display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="Sua mensagem..." style="flex: 1; padding: 12px; border-radius: 25px; border: none; background: #222; color: #fff;">
-            <button onclick="enviarMsg()" style="background: #1877f2; color: white; border: none; border-radius: 50%; width: 45px; height: 45px;">➔</button>
+        <div style="position: fixed; bottom: 80px; width: 100%; padding: 10px; display: flex; gap: 8px;">
+            <input type="text" id="msg-input" placeholder="Conversar..." style="flex:1; padding:12px; border-radius:25px; border:none; background:#222; color:#fff;">
+            <button onclick="send()" style="background:#1877f2; color:white; border:none; border-radius:50%; width:45px; height:45px;">➔</button>
+        </div>
+    </div>
+
+    <div id="perfil" class="screen">
+        <div class="top-bar"><h1>Perfil</h1></div>
+        <div style="text-align:center; padding:30px;">
+            <div class="profile-img" style="width:100px; height:100px; margin: 0 auto; font-size:40px;">M</div>
+            <h2 style="margin-top:15px;">Michel Detilli</h2>
+            <p style="color:#888;">App Developer & Architect</p>
         </div>
     </div>
 
     <nav>
-        <button onclick="navTo('home')" id="btn-home" class="active-link">🏠<span>Home</span></button>
-        <button onclick="navTo('chat')" id="btn-chat">💬<span>Chat</span></button>
-        <button onclick="navTo('market')">🛒<span>Market</span></button>
-        <button onclick="navTo('perfil')">👤<span>Perfil</span></button>
+        <button onclick="go('home')" class="active-btn" id="b-home">🏠<span>Home</span></button>
+        <button onclick="go('chat')" id="b-chat">💬<span>Chat</span></button>
+        <button onclick="go('perfil')" id="b-perfil">👤<span>Perfil</span></button>
     </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
-        // CONEXÃO ÚNICA (O MOTOR)
-        const supabase = supabase.createClient('SUA_URL_AQUI', 'SUA_KEY_AQUI');
-
-        function navTo(screen) {
-            // Esconde todas as telas
-            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-link'));
-            
-            // Mostra a selecionada
-            document.getElementById('screen-' + screen).classList.add('active');
-            if(document.getElementById('btn-' + screen)) {
-                document.getElementById('btn-' + screen).classList.add('active-link');
-            }
+        function go(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('b-' + id).classList.add('active-btn');
         }
 
-        async function enviarMsg() {
-            const input = document.getElementById('chat-input');
+        function send() {
+            const input = document.getElementById('msg-input');
             if(!input.value) return;
-
-            // Injeta na tela na hora (Design Premium)
-            const chat = document.getElementById('chat-content');
-            chat.innerHTML += `<div class="bubble sent">${input.value}</div>`;
-            chat.scrollTop = chat.scrollHeight;
+            const win = document.getElementById('chat-window');
+            win.innerHTML += `<div class="msg me">${input.value}</div>`;
+            win.scrollTop = win.scrollHeight;
             input.value = '';
         }
     </script>
