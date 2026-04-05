@@ -1,12 +1,10 @@
 {
   "name": "Chat-mensagens",
   "short_name": "Chat",
-  "description": "Chat estilo WhatsApp com áudio, fotos e notificações",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#1a73e8",
-  "orientation": "portrait",
+  "background_color": "#0b141a",
+  "theme_color": "#25d366",
   "icons": [
     {
       "src": "icon-192-1.png",
