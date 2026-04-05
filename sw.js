@@ -1,15 +1,19 @@
 const CACHE = "chat-v1";
 
-// Listamos apenas o que temos certeza que está funcionando
+// Esta lista deve ter APENAS arquivos que você sabe que existem no GitHub
 const assets = [
   "./",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./icon-192.png", // <--- Este nome precisa estar certo
+  "./icon-512.png"  // <--- Este nome precisa estar certo
 ];
 
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(CACHE).then(cache => {
+      console.log("Arquivos cacheados com sucesso!");
+      // O 'addAll' só funciona se TODOS os arquivos da lista existirem no GitHub
       return cache.addAll(assets);
     })
   );
