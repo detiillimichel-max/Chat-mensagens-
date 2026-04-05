@@ -1,97 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat-mensagens</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chat-mensagens</title>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25d366">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
-<style>
-body { margin:0; font-family:Arial; background:#0b141a; color:#fff; }
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-/* TELAS */
-.screen { display:none; height:100vh; }
-.active { display:flex; flex-direction:column; }
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#0b141a; color:#fff; overflow: hidden; }
 
-/* HEADER */
-header {
-  padding:15px;
-  background:#202c33;
-  font-weight:bold;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+    /* TELAS */
+    .screen { display:none; height:100vh; }
+    .active { display:flex; flex-direction:column; }
 
-/* LISTA */
-#lista { flex:1; overflow:auto; }
+    /* HEADER */
+    header {
+      padding:15px;
+      background:#202c33;
+      font-weight:bold;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
 
-.item {
-  padding:15px;
-  border-bottom:1px solid #222;
-  cursor:pointer;
-}
+    /* LISTA */
+    #lista { flex:1; overflow:auto; }
 
-.item:hover { background:#1a1a1a; }
+    .item {
+      padding:20px;
+      border-bottom:1px solid #222;
+      cursor:pointer;
+      transition: background 0.3s;
+    }
 
-/* CHAT */
-#chat { flex:1; overflow:auto; padding:10px; display:flex; flex-direction:column; }
+    .item:hover { background:#1a1a1a; }
 
-.msg {
-  max-width:75%;
-  padding:10px;
-  margin:5px;
-  border-radius:12px;
-}
+    /* CHAT */
+    #chat { flex:1; overflow:auto; padding:10px; display:flex; flex-direction:column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
 
-.me { background:#005c4b; align-self:flex-end; }
-.other { background:#202c33; align-self:flex-start; }
+    .msg {
+      max-width:75%;
+      padding:10px;
+      margin:5px;
+      border-radius:12px;
+      word-wrap: break-word;
+      font-size: 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
 
-/* INPUT */
-.barra {
-  display:flex;
-  padding:10px;
-  gap:10px;
-  background:#202c33;
-  align-items:center;
-}
+    .me { background:#005c4b; align-self:flex-end; border-bottom-right-radius: 2px; }
+    .other { background:#202c33; align-self:flex-start; border-bottom-left-radius: 2px; }
 
-input {
-  flex:1;
-  padding:10px;
-  border-radius:20px;
-  border:none;
-}
+    /* INPUT BARRA */
+    .barra {
+      display:flex;
+      padding:10px;
+      gap:10px;
+      background:#202c33;
+      align-items:center;
+    }
 
-.icon { cursor:pointer; }
+    input#msg {
+      flex:1;
+      padding:12px;
+      border-radius:25px;
+      border:none;
+      background: #2a3942;
+      color: white;
+      outline: none;
+    }
 
-.btn {
-  background:#25d366;
-  border:none;
-  width:45px;
-  height:45px;
-  border-radius:50%;
-  color:#fff;
-}
-</style>
+    .icon { cursor:pointer; font-size: 20px; color: #8696a0; }
+
+    .btn {
+      background:#25d366;
+      border:none;
+      width:45px;
+      height:45px;
+      border-radius:50%;
+      color:#fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+  </style>
 </head>
 
 <body>
 
 <audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
-<!-- LISTA -->
 <div id="listaScreen" class="screen active">
   <header>Conversas</header>
   <div id="lista"></div>
 </div>
 
-<!-- CHAT -->
 <div id="chatScreen" class="screen">
   <header>
     <i class="fa-solid fa-arrow-left" onclick="voltar()"></i>
-    <span id="nomeChat">Chat</span>
+    <span id="nomeChat">Chat Global</span>
   </header>
 
   <div id="chat"></div>
@@ -100,7 +115,7 @@ input {
     <i class="fa-solid fa-camera icon" onclick="abrirGaleria()"></i>
     <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
 
-    <input id="msg" placeholder="Mensagem">
+    <input id="msg" placeholder="Mensagem" autocomplete="off">
 
     <button class="btn" onclick="enviar()">
       <i class="fa-solid fa-paper-plane"></i>
@@ -110,149 +125,144 @@ input {
 
 <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbItrAXq7Y",
-  databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
-  projectId: "vibe-app-bbba2"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-
-const nick = localStorage.getItem("vibe_user") || prompt("Seu nome:");
-
-let chatAtual = "global";
-
-/* LISTA */
-function carregarLista(){
-  const lista = document.getElementById("lista");
-
-  const div = document.createElement("div");
-  div.className = "item";
-  div.innerHTML = "💬 Chat Global";
-  div.onclick = () => abrirChat("global");
-
-  lista.appendChild(div);
-}
-
-carregarLista();
-
-/* ABRIR CHAT */
-function abrirChat(id){
-  chatAtual = id;
-
-  listaScreen.classList.remove("active");
-  chatScreen.classList.add("active");
-
-  chat.innerHTML = "";
-
-  db.ref("chat_vibe").limitToLast(50).on("child_added", snap=>{
-    const m = snap.val();
-
-    const div = document.createElement("div");
-    div.className = "msg " + (m.autor === nick ? "me":"other");
-
-    if(m.tipo === "foto"){
-      div.innerHTML = `<img src="${m.imagem}" style="width:100%">`;
-    }
-    else if(m.tipo === "audio"){
-      div.innerHTML = `<audio controls src="${m.audio}"></audio>`;
-    }
-    else{
-      div.innerText = m.autor + ": " + m.texto;
-    }
-
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-
-    if(m.autor !== nick){
-      document.getElementById("som").play().catch(()=>{});
-    }
-  });
-}
-
-/* VOLTAR */
-function voltar(){
-  chatScreen.classList.remove("active");
-  listaScreen.classList.add("active");
-}
-
-/* ENVIAR */
-function enviar(){
-  if(!msg.value) return;
-
-  db.ref("chat_vibe").push({
-    autor: nick,
-    texto: msg.value,
-    tipo:"texto"
-  });
-
-  msg.value="";
-}
-
-/* FOTO */
-function abrirGaleria(){
-  fileInput.click();
-}
-
-fileInput.onchange = e=>{
-  const file = e.target.files[0];
-  const reader = new FileReader();
-
-  reader.onload = ev=>{
-    db.ref("chat_vibe").push({
-      autor: nick,
-      imagem: ev.target.result,
-      tipo:"foto"
-    });
+  // CONFIGURAÇÃO FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbItrAXq7Y",
+    databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
+    projectId: "vibe-app-bbba2"
   };
 
-  reader.readAsDataURL(file);
-};
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-/* AUDIO */
-let recorder;
-let chunks=[];
+  const nick = localStorage.getItem("vibe_user") || prompt("Seu nome:") || "Usuário";
+  if(!localStorage.getItem("vibe_user")) localStorage.setItem("vibe_user", nick);
 
-btnAudio.onclick = async ()=>{
+  let chatAtual = "global";
 
-  if(!recorder || recorder.state==="inactive"){
-
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    recorder = new MediaRecorder(stream);
-    chunks=[];
-
-    recorder.ondataavailable = e=>chunks.push(e.data);
-
-    recorder.onstop = ()=>{
-      const blob = new Blob(chunks);
-      const reader = new FileReader();
-
-      reader.onload = ev=>{
-        db.ref("chat_vibe").push({
-          autor: nick,
-          audio: ev.target.result,
-          tipo:"audio"
-        });
-      };
-
-      reader.readAsDataURL(blob);
-    };
-
-    recorder.start();
-    btnAudio.style.color="red";
-
-  }else{
-    recorder.stop();
-    btnAudio.style.color="#fff";
+  // CARREGAR LISTA INICIAL
+  function carregarLista(){
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = "💬 Chat Global";
+    div.onclick = () => abrirChat("global");
+    lista.appendChild(div);
   }
-};
+
+  carregarLista();
+
+  // ABRIR CHAT
+  function abrirChat(id){
+    chatAtual = id;
+    document.getElementById("listaScreen").classList.remove("active");
+    document.getElementById("chatScreen").classList.add("active");
+
+    const chatDiv = document.getElementById("chat");
+    chatDiv.innerHTML = "";
+
+    // Escutar mensagens em tempo real
+    db.ref("chat_vibe").limitToLast(50).on("child_added", snap => {
+      const m = snap.val();
+      const div = document.createElement("div");
+      div.className = "msg " + (m.autor === nick ? "me" : "other");
+
+      if(m.tipo === "foto"){
+        div.innerHTML = `<img src="${m.imagem}" style="width:100%; border-radius:8px;">`;
+      }
+      else if(m.tipo === "audio"){
+        div.innerHTML = `<audio controls src="${m.audio}" style="width:200px;"></audio>`;
+      }
+      else{
+        div.innerText = m.autor + ": " + m.texto;
+      }
+
+      chatDiv.appendChild(div);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+
+      if(m.autor !== nick){
+        document.getElementById("som").play().catch(()=>{});
+      }
+    });
+  }
+
+  function voltar(){
+    document.getElementById("chatScreen").classList.remove("active");
+    document.getElementById("listaScreen").classList.add("active");
+    db.ref("chat_vibe").off(); // Para de ouvir quando sai do chat
+  }
+
+  function enviar(){
+    const inputMsg = document.getElementById("msg");
+    if(!inputMsg.value.trim()) return;
+
+    db.ref("chat_vibe").push({
+      autor: nick,
+      texto: inputMsg.value,
+      tipo: "texto",
+      timestamp: Date.now()
+    });
+
+    inputMsg.value = "";
+  }
+
+  // FOTOS
+  function abrirGaleria(){ document.getElementById("fileInput").click(); }
+
+  document.getElementById("fileInput").onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ev => {
+      db.ref("chat_vibe").push({
+        autor: nick,
+        imagem: ev.target.result,
+        tipo: "foto"
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ÁUDIO
+  let recorder;
+  let chunks = [];
+
+  document.getElementById("btnAudio").onclick = async () => {
+    if(!recorder || recorder.state === "inactive"){
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        recorder = new MediaRecorder(stream);
+        chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+          const blob = new Blob(chunks);
+          const reader = new FileReader();
+          reader.onload = ev => {
+            db.ref("chat_vibe").push({ autor: nick, audio: ev.target.result, tipo: "audio" });
+          };
+          reader.readAsDataURL(blob);
+        };
+        recorder.start();
+        document.getElementById("btnAudio").style.color = "red";
+      } catch(err) { alert("Permita o uso do microfone."); }
+    } else {
+      recorder.stop();
+      document.getElementById("btnAudio").style.color = "#8696a0";
+    }
+  };
+
+  // REGISTRAR SERVICE WORKER (PARA PWA)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado com sucesso!', reg))
+        .catch(err => console.error('Falha ao registrar Service Worker:', err));
+    });
+  }
 </script>
 
 </body>
