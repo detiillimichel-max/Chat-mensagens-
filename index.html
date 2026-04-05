@@ -5,106 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat-mensagens</title>
 
-<!-- Ícones PROFISSIONAIS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
 <style>
-body {
-  margin:0;
-  background:#0b141a;
-  font-family: Arial;
+body { margin:0; font-family:Arial; background:#0b141a; color:#fff; }
+
+/* TELAS */
+.screen { display:none; height:100vh; }
+.active { display:flex; flex-direction:column; }
+
+/* HEADER */
+header {
+  padding:15px;
+  background:#202c33;
+  font-weight:bold;
   display:flex;
-  flex-direction:column;
-  height:100vh;
+  align-items:center;
+  gap:10px;
 }
+
+/* LISTA */
+#lista { flex:1; overflow:auto; }
+
+.item {
+  padding:15px;
+  border-bottom:1px solid #222;
+  cursor:pointer;
+}
+
+.item:hover { background:#1a1a1a; }
 
 /* CHAT */
-#chat {
-  flex:1;
-  overflow:auto;
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-}
+#chat { flex:1; overflow:auto; padding:10px; display:flex; flex-direction:column; }
 
-/* MENSAGENS */
 .msg {
   max-width:75%;
   padding:10px;
   margin:5px;
   border-radius:12px;
-  color:#fff;
 }
 
-.me {
-  background:#005c4b;
-  align-self:flex-end;
-}
+.me { background:#005c4b; align-self:flex-end; }
+.other { background:#202c33; align-self:flex-start; }
 
-.other {
-  background:#202c33;
-  align-self:flex-start;
-}
-
-/* BARRA */
+/* INPUT */
 .barra {
   display:flex;
-  align-items:center;
   padding:10px;
   gap:10px;
   background:#202c33;
+  align-items:center;
 }
 
-.icon {
-  font-size:20px;
-  color:#aaa;
-  cursor:pointer;
-}
-
-/* INPUT */
 input {
   flex:1;
   padding:10px;
-  border:none;
   border-radius:20px;
-  outline:none;
+  border:none;
 }
 
-/* BOTÃO ENVIAR */
-.btn-enviar {
+.icon { cursor:pointer; }
+
+.btn {
   background:#25d366;
   border:none;
   width:45px;
   height:45px;
   border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
   color:#fff;
-  font-size:18px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="chat"></div>
+<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
-<div class="barra">
+<!-- LISTA -->
+<div id="listaScreen" class="screen active">
+  <header>Conversas</header>
+  <div id="lista"></div>
+</div>
 
-  <!-- GALERIA -->
-  <i class="fa-solid fa-image icon" onclick="abrirGaleria()"></i>
+<!-- CHAT -->
+<div id="chatScreen" class="screen">
+  <header>
+    <i class="fa-solid fa-arrow-left" onclick="voltar()"></i>
+    <span id="nomeChat">Chat</span>
+  </header>
 
-  <!-- ÁUDIO -->
-  <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
+  <div id="chat"></div>
 
-  <input id="msg" placeholder="Mensagem">
+  <div class="barra">
+    <i class="fa-solid fa-camera icon" onclick="abrirGaleria()"></i>
+    <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
 
-  <!-- ENVIAR -->
-  <button class="btn-enviar" onclick="enviar()">
-    <i class="fa-solid fa-paper-plane"></i>
-  </button>
+    <input id="msg" placeholder="Mensagem">
 
+    <button class="btn" onclick="enviar()">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
 </div>
 
 <input type="file" id="fileInput" accept="image/*" style="display:none">
@@ -121,101 +122,137 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database().ref("chat_vibe");
+
+const db = firebase.database();
 
 const nick = localStorage.getItem("vibe_user") || prompt("Seu nome:");
 
-/* ENVIAR TEXTO */
-function enviar() {
+let chatAtual = "global";
+
+/* LISTA */
+function carregarLista(){
+  const lista = document.getElementById("lista");
+
+  const div = document.createElement("div");
+  div.className = "item";
+  div.innerHTML = "💬 Chat Global";
+  div.onclick = () => abrirChat("global");
+
+  lista.appendChild(div);
+}
+
+carregarLista();
+
+/* ABRIR CHAT */
+function abrirChat(id){
+  chatAtual = id;
+
+  listaScreen.classList.remove("active");
+  chatScreen.classList.add("active");
+
+  chat.innerHTML = "";
+
+  db.ref("chat_vibe").limitToLast(50).on("child_added", snap=>{
+    const m = snap.val();
+
+    const div = document.createElement("div");
+    div.className = "msg " + (m.autor === nick ? "me":"other");
+
+    if(m.tipo === "foto"){
+      div.innerHTML = `<img src="${m.imagem}" style="width:100%">`;
+    }
+    else if(m.tipo === "audio"){
+      div.innerHTML = `<audio controls src="${m.audio}"></audio>`;
+    }
+    else{
+      div.innerText = m.autor + ": " + m.texto;
+    }
+
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+
+    if(m.autor !== nick){
+      document.getElementById("som").play().catch(()=>{});
+    }
+  });
+}
+
+/* VOLTAR */
+function voltar(){
+  chatScreen.classList.remove("active");
+  listaScreen.classList.add("active");
+}
+
+/* ENVIAR */
+function enviar(){
   if(!msg.value) return;
 
-  db.push({
+  db.ref("chat_vibe").push({
     autor: nick,
     texto: msg.value,
-    tipo: "texto"
+    tipo:"texto"
   });
 
-  msg.value = "";
+  msg.value="";
 }
 
-/* GALERIA REAL */
+/* FOTO */
 function abrirGaleria(){
-  document.getElementById("fileInput").click();
+  fileInput.click();
 }
 
-fileInput.onchange = e => {
+fileInput.onchange = e=>{
   const file = e.target.files[0];
-  if(!file) return;
-
   const reader = new FileReader();
-  reader.onload = ev => {
-    db.push({
+
+  reader.onload = ev=>{
+    db.ref("chat_vibe").push({
       autor: nick,
       imagem: ev.target.result,
-      tipo: "foto"
+      tipo:"foto"
     });
   };
+
   reader.readAsDataURL(file);
 };
 
-/* ÁUDIO REAL */
-let mediaRecorder;
-let chunks = [];
+/* AUDIO */
+let recorder;
+let chunks=[];
 
-btnAudio.onclick = async () => {
-  if (!mediaRecorder || mediaRecorder.state === "inactive") {
+btnAudio.onclick = async ()=>{
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  if(!recorder || recorder.state==="inactive"){
 
-    mediaRecorder = new MediaRecorder(stream);
-    chunks = [];
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recorder = new MediaRecorder(stream);
+    chunks=[];
 
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    recorder.ondataavailable = e=>chunks.push(e.data);
 
-    mediaRecorder.onstop = () => {
+    recorder.onstop = ()=>{
       const blob = new Blob(chunks);
       const reader = new FileReader();
 
-      reader.onload = ev => {
-        db.push({
+      reader.onload = ev=>{
+        db.ref("chat_vibe").push({
           autor: nick,
           audio: ev.target.result,
-          tipo: "audio"
+          tipo:"audio"
         });
       };
 
       reader.readAsDataURL(blob);
     };
 
-    mediaRecorder.start();
-    btnAudio.style.color = "red";
+    recorder.start();
+    btnAudio.style.color="red";
 
-  } else {
-    mediaRecorder.stop();
-    btnAudio.style.color = "#aaa";
+  }else{
+    recorder.stop();
+    btnAudio.style.color="#fff";
   }
 };
-
-/* RECEBER */
-db.limitToLast(50).on("child_added", snap => {
-  const m = snap.val();
-
-  const div = document.createElement("div");
-  div.className = "msg " + (m.autor === nick ? "me" : "other");
-
-  if(m.tipo === "foto"){
-    div.innerHTML = `<img src="${m.imagem}" style="width:100%;border-radius:10px;">`;
-  }
-  else if(m.tipo === "audio"){
-    div.innerHTML = `<audio controls src="${m.audio}" style="width:100%"></audio>`;
-  }
-  else{
-    div.innerText = m.autor + ": " + m.texto;
-  }
-
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-});
 </script>
 
 </body>
