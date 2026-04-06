@@ -1,0 +1,49 @@
+<div class="glass-card podcast-item">
+    <div class="podcast-header">
+        <img src="media/icons/user-placeholder.png" class="user-avatar">
+        <div class="user-info">
+            <span class="username">@Michel_Dev <i class="badge-verified"></i></span>
+            <span class="timestamp">há 2 min</span>
+        </div>
+        <button class="btn-follow-twitter">Seguir</button>
+    </div>
+
+    <div class="audio-visualizer">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="play-btn-center">▶</div>
+    </div>
+
+    <div class="podcast-footer">
+        <span>❤️ 12</span>
+        <span>💬 5</span>
+        <span>✈️</span>
+    </div>
+</div>
+
+<style>
+.podcast-item { margin: 15px; border-top: 2px solid var(--accent-blue); }
+.audio-visualizer {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.wave-bar {
+    width: 4px;
+    height: 20px;
+    background: var(--accent-blue);
+    border-radius: 2px;
+}
+.btn-follow-twitter {
+    background: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 12px;
+}
+</style>
+
