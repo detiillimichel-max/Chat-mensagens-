@@ -22,7 +22,7 @@
         #chat { height: calc(100vh - 120px); overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         .msg { max-width: 70%; padding: 8px 12px; border-radius: 18px; font-size: 15px; }
         .mine { align-self: flex-end; background: var(--fb-mine-blue); color: #fff; border-bottom-right-radius: 4px; }
-        .other { align-self: flex-start; background: var(--fb-other-grey); border-bottom-left-radius: 4px; }
+        .other { align-self: flex-start; background: var(--fb-other-grey); b7order-bottom-left-radius: 4px; }
         .footer { height: 70px; background: var(--fb-header); position: fixed; bottom: 0; width: 100%; display: flex; align-items: center; padding: 0 10px; gap: 8px; box-sizing: border-box; z-index: 20; border-top: 1px solid #ddd; }
         .in { flex: 1; background: #e4e6eb; border: none; border-radius: 20px; padding: 10px 15px; color: var(--fb-text); font-size: 16px; }
         .btn-acc { background: none; border: none; color: var(--fb-main-blue); font-size: 20px; cursor: pointer; }
@@ -57,7 +57,7 @@
 
         document.getElementById('send').onclick = () => {
             const i = document.getElementById('input');
-            if(i.value.trim()){ db.push({ nome: user, msg: i.value, data: Date.now() }); i.value = ''; }
+            if(i.value.trim()){ db.push({ nome: user, msg: i.value, data: Date.now() } i.value = ''; }
         };
     </script>
 </body>
