@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat Premium</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -15,7 +13,7 @@
             --bg-dark: #0e1621;
             --bar-dark: #17212b;
             --accent-blue: #4b8df8;
-            --glass: rgba(23, 33, 43, 0.8);
+            --glass: rgba(23, 33, 43, 0.85);
         }
 
         body, html {
@@ -24,63 +22,62 @@
             background-size: cover; background-position: center; color: white; overflow: hidden;
         }
 
-        /* Header */
         .header {
             height: 60px; background: var(--bar-dark); display: flex;
             align-items: center; padding: 0 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* Container de Mensagens */
         #chat-container {
-            height: calc(100vh - 130px); overflow-y: auto; padding: 15px;
+            height: calc(100vh - 140px); overflow-y: auto; padding: 15px;
             display: flex; flex-direction: column; gap: 10px;
         }
 
         .bubble {
             max-width: 80%; padding: 10px 15px; border-radius: 18px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2); font-size: 15px;
+            font-size: 15px; backdrop-filter: blur(5px);
         }
         .bubble small { color: var(--accent-blue); font-weight: bold; font-size: 11px; }
         .mine { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 2px; }
         .other { align-self: flex-start; background: var(--bar-dark); border-bottom-left-radius: 2px; }
 
-        /* Audio Player Style */
-        audio { height: 35px; width: 220px; filter: invert(1) hue-rotate(180deg) brightness(1.5); margin-top: 5px; }
-
-        /* Barra Inferior */
+        /* Rodapé Ajustado */
         .footer {
-            height: 70px; background: var(--bar-dark); position: fixed; bottom: 0;
-            width: 100%; display: flex; align-items: center; padding: 0 10px; gap: 10px;
+            height: 80px; background: var(--bar-dark); position: fixed; bottom: 0;
+            width: 100%; display: flex; align-items: center; padding: 0 15px; gap: 12px;
+            box-sizing: border-box;
         }
 
         .input-box {
             flex: 1; background: #242f3d; border: none; border-radius: 25px;
-            padding: 10px 18px; color: white; outline: none; font-size: 16px;
+            padding: 12px 18px; color: white; outline: none; font-size: 16px;
         }
 
-        .btn-icon { background: none; border: none; color: var(--accent-blue); font-size: 24px; cursor: pointer; }
+        .btn-icon { background: none; border: none; color: var(--accent-blue); font-size: 22px; cursor: pointer; padding: 5px; }
+        
+        /* Espaçamento do aviãozinho na borda */
+        #btnEnviar { margin-right: 5px; }
 
-        /* GAVETA DE VIDRO */
+        /* Gaveta de Vidro */
         #drawer {
-            position: fixed; bottom: -300px; left: 0; width: 100%; height: 250px;
-            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            position: fixed; bottom: -300px; left: 0; width: 100%; height: 260px;
+            background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border-top: 1px solid rgba(255,255,255,0.1); border-radius: 25px 25px 0 0;
-            transition: bottom 0.3s ease; z-index: 100;
+            transition: bottom 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 100;
             display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
         }
         #drawer.open { bottom: 0; }
 
-        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: white; font-size: 13px; }
-        .drawer-icon { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 90; }
+        
+        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: white; font-size: 13px; cursor: pointer; }
+        .drawer-icon { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <i class="fas fa-bars"></i>
-        <div style="margin-left: 20px;">
+        <div style="margin-left: 15px;">
             <b id="chat-name">Chat Global</b><br>
             <small style="color: var(--accent-blue)">online</small>
         </div>
@@ -92,6 +89,7 @@
     <div class="footer">
         <button class="btn-icon" onclick="toggleDrawer()"><i class="fas fa-plus"></i></button>
         <input type="text" id="msgInput" class="input-box" placeholder="Mensagem...">
+        <button class="btn-icon"><i class="fas fa-microphone"></i></button>
         <button class="btn-icon" id="btnEnviar"><i class="fas fa-paper-plane"></i></button>
     </div>
 
@@ -115,27 +113,22 @@
     </div>
 
     <script>
-        // 1. CONFIGURAÇÃO FIREBASE
+        // Configuração Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y",
             databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
         };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         var db = firebase.database().ref("chat_vibe");
-        var meuID = localStorage.getItem("vibe_user") || "Convidado";
-        var somMsg = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+        var meuID = localStorage.getItem("vibe_user") || "Michel Detilli";
 
-        // Carrega wallpaper salvo
         window.onload = () => {
             const bg = localStorage.getItem('chat-bg');
             if(bg) document.body.style.backgroundImage = `url(${bg})`;
+            escutarMensagens();
         };
 
-        // 2. FUNÇÃO ENVIAR MENSAGEM
+        // Enviar Mensagem
         document.getElementById('btnEnviar').onclick = function() {
             var inp = document.getElementById('msgInput');
             if (inp.value.trim() !== "") {
@@ -143,43 +136,55 @@
                     nome: meuID,
                     msg: inp.value,
                     tipo: "texto",
-                    data: new Date().getTime()
+                    data: Date.now()
                 });
                 inp.value = "";
-                somMsg.play();
             }
         };
 
-        // 3. ESCUTAR MENSAGENS EM TEMPO REAL
-        db.on("value", function(snapshot) {
-            var cont = document.getElementById('chat-container');
-            cont.innerHTML = ''; 
-            
-            snapshot.forEach(function(item) {
-                var m = item.val();
-                var classe = m.nome === meuID ? 'mine' : 'other';
-                
-                if (m.tipo === "audio") {
-                    cont.innerHTML += `<div class="bubble ${classe}">
-                        <small>${m.nome}</small><br>
-                        <audio controls src="${m.url}" onplay="this.load()"></audio>
-                    </div>`;
-                } else {
-                    cont.innerHTML += `<div class="bubble ${classe}">
-                        <small>${m.nome}</small><br>
-                        ${m.msg}
-                    </div>`;
-                }
+        // Escutar Mensagens em Tempo Real
+        function escutarMensagens() {
+            db.on("value", function(snapshot) {
+                var cont = document.getElementById('chat-container');
+                cont.innerHTML = '';
+                snapshot.forEach(function(item) {
+                    var m = item.val();
+                    var classe = m.nome === meuID ? 'mine' : 'other';
+                    cont.innerHTML += `<div class="bubble ${classe}"><small>${m.nome}</small><br>${m.msg}</div>`;
+                });
+                cont.scrollTop = cont.scrollHeight;
             });
-            cont.scrollTop = cont.scrollHeight;
-        });
+        }
 
-        // 4. FUNÇÕES DA INTERFACE
+        // Funções da Gaveta
         function toggleDrawer() {
             const drawer = document.getElementById('drawer');
             const overlay = document.getElementById('overlay');
-            drawer.classList.toggle('open');
-            overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+            const isOpen = drawer.classList.contains('open');
+            
+            if (isOpen) {
+                drawer.classList.remove('open');
+                overlay.style.display = 'none';
+            } else {
+                drawer.classList.add('open');
+                overlay.style.display = 'block';
+            }
+        }
+
+        async function abrirAgenda() {
+            if ('contacts' in navigator) {
+                try {
+                    const contacts = await navigator.contacts.select(['name', 'tel'], {multiple: false});
+                    if (contacts.length) {
+                        var tel = contacts[0].tel[0].replace(/\D/g, '');
+                        window.open(`https://wa.me/${tel}?text=Me chama no meu app: ${window.location.href}`, '_blank');
+                    }
+                    toggleDrawer(); // Fecha a gaveta após selecionar
+                } catch (e) { toggleDrawer(); }
+            } else {
+                alert("Abra no celular para ver contatos.");
+                toggleDrawer();
+            }
         }
 
         function mudarFundo() {
@@ -195,21 +200,6 @@
                 reader.readAsDataURL(e.target.files[0]);
             };
             up.click();
-        }
-
-        async function abrirAgenda() {
-            if ('contacts' in navigator) {
-                try {
-                    const contacts = await navigator.contacts.select(['name', 'tel'], {multiple: false});
-                    if (contacts.length) {
-                        var tel = contacts[0].tel[0].replace(/\D/g, '');
-                        var nome = contacts[0].name[0];
-                        window.open(`https://wa.me/${tel}?text=Oi ${nome}, me chama no meu novo app: ${window.location.href}`, '_blank');
-                    }
-                } catch (e) { alert("Acesso à agenda negado."); }
-            } else {
-                alert("Use o app instalado no celular para acessar contatos.");
-            }
         }
     </script>
 </body>
