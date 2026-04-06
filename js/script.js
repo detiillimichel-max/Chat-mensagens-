@@ -17,11 +17,11 @@ if (!firebase.apps.length) {
 
 const db = firebase.database().ref("chat_vibe");
 
-// ================= SOM WHATSAPP STYLE =================
+// ================= SOM =================
 const somMsg = new Audio("https://www.soundjay.com/buttons/sounds/button-09.mp3");
 somMsg.preload = "auto";
 
-// 🔓 libera áudio no celular (OBRIGATÓRIO)
+// desbloqueia som no celular
 document.addEventListener("click", () => {
     somMsg.play().then(() => {
         somMsg.pause();
@@ -29,14 +29,10 @@ document.addEventListener("click", () => {
     }).catch(() => {});
 }, { once: true });
 
-// Vibração + som
 function notificar() {
     somMsg.currentTime = 0;
     somMsg.play().catch(() => {});
-
-    if (navigator.vibrate) {
-        navigator.vibrate([120, 60, 120]);
-    }
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
 }
 
 let primeiraVez = true;
@@ -63,38 +59,34 @@ db.limitToLast(50).on("child_added", snap => {
     `;
 
     if (m.tipo === 'foto') {
-
-        div.innerHTML = topo + `
-            <img src="${m.imagem}" style="width:100%; border-radius:12px;">
-        `;
-
-    } else if (m.tipo === 'audio') {
-
+        div.innerHTML = topo + `<img src="${m.imagem}" style="width:100%; border-radius:12px;">`;
+    } 
+    else if (m.tipo === 'audio') {
         div.innerHTML = topo + `
             <audio controls style="width:100%">
                 <source src="${m.audio}" type="audio/webm">
             </audio>
         `;
-
-    } else {
-
-        div.innerHTML = topo + `
-            <span>${m.texto}</span>
-        `;
+    } 
+    else {
+        div.innerHTML = topo + `<span>${m.texto}</span>`;
     }
 
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 
-    // 🔔 NOTIFICAÇÃO REAL
+    // 🔔 NOTIFICAÇÃO
     if (m.autor !== nick && !primeiraVez) {
         notificar();
     }
 });
 
-setTimeout(() => { primeiraVez = false; }, 2000);
+// ✅ CORREÇÃO DO ERRO AQUI
+setTimeout(() => {
+    primeiraVez = false;
+}, 2000);
 
-// ================= ENVIAR TEXTO =================
+// ================= ENVIAR =================
 function enviar() {
     const input = document.getElementById('msgInput');
 
@@ -119,7 +111,6 @@ const fotoInput = document.getElementById('fotoInput');
 btnFoto.onclick = () => fotoInput.click();
 
 fotoInput.onchange = (e) => {
-
     const file = e.target.files[0];
     if (!file) return;
 
