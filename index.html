@@ -3,187 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat Premium</title>
+    <title>Chat Global</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <style>
-        :root {
-            --bg-dark: #0e1621;
-            --bar-dark: #17212b;
-            --accent-blue: #4b8df8;
-            --glass: rgba(23, 33, 43, 0.85);
-        }
-
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: sans-serif; background-color: var(--bg-dark);
-            background-size: cover; background-position: center; color: white; overflow: hidden;
-        }
-
-        .header {
-            height: 60px; background: var(--bar-dark); display: flex;
-            align-items: center; padding: 0 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            position: relative; z-index: 5;
-        }
-
-        #chat-container {
-            height: calc(100vh - 130px); overflow-y: auto; padding: 15px;
-            display: flex; flex-direction: column; gap: 10px;
-            padding-bottom: 20px;
-        }
-
-        .bubble {
-            max-width: 80%; padding: 10px 15px; border-radius: 18px;
-            font-size: 15px; backdrop-filter: blur(5px);
-        }
-        .mine { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 2px; }
-        .other { align-self: flex-start; background: var(--bar-dark); border-bottom-left-radius: 2px; }
-
-        .footer {
-            height: 70px; background: var(--bar-dark); position: fixed; bottom: 0;
-            width: 100%; display: flex; align-items: center; padding: 0 15px; gap: 10px;
-            box-sizing: border-box; z-index: 10;
-        }
-
-        .input-box {
-            flex: 1; background: #242f3d; border: none; border-radius: 25px;
-            padding: 10px 18px; color: white; outline: none; font-size: 16px;
-        }
-
-        .btn-icon { background: none; border: none; color: var(--accent-blue); font-size: 22px; cursor: pointer; }
-
-        /* GAVETA CORRIGIDA: Agora ela desce 120% da tela */
-        #drawer {
-            position: fixed; bottom: -120%; left: 0; width: 100%; height: 260px;
-            background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border-top: 1px solid rgba(255,255,255,0.1); border-radius: 25px 25px 0 0;
-            transition: bottom 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 100;
-            display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
-        }
+        :root { --bar: #17212b; --acc: #4b8df8; --glass: rgba(23, 33, 43, 0.9); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; background: #0e1621; color: white; overflow: hidden; background-size: cover; background-position: center; }
+        .header { height: 60px; background: var(--bar); display: flex; align-items: center; padding: 0 15px; position: relative; z-index: 10; }
+        #chat-container { height: calc(100vh - 130px); overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 80%; padding: 10px; border-radius: 15px; font-size: 15px; backdrop-filter: blur(5px); }
+        .mine { align-self: flex-end; background: #2b5278; }
+        .other { align-self: flex-start; background: var(--bar); }
+        .footer { height: 70px; background: var(--bar); position: fixed; bottom: 0; width: 100%; display: flex; align-items: center; padding: 0 10px; gap: 8px; box-sizing: border-box; z-index: 20; }
+        .input-box { flex: 1; background: #242f3d; border: none; border-radius: 20px; padding: 10px 15px; color: white; outline: none; font-size: 16px; }
+        .btn { background: none; border: none; color: var(--acc); font-size: 20px; cursor: pointer; }
+        /* Gaveta escondida totalmente abaixo da tela */
+        #drawer { position: fixed; bottom: -150%; left: 0; width: 100%; height: 250px; background: var(--glass); backdrop-filter: blur(20px); border-radius: 25px 25px 0 0; transition: 0.4s; z-index: 100; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; }
         #drawer.open { bottom: 0; }
-
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; z-index: 90; }
-        
-        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: white; font-size: 13px; cursor: pointer; }
-        .drawer-icon { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .d-item { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 12px; }
+        .d-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <i class="fas fa-bars"></i>
-        <div style="margin-left: 15px;">
-            <b>Chat Global</b><br>
-            <small style="color: var(--accent-blue)">online</small>
-        </div>
-        <button onclick="mudarFundo()" style="margin-left: auto; background: none; border: none; color: white;"><i class="fas fa-palette"></i></button>
+        <div style="margin-left: 15px;"><b>Chat Global</b><br><small style="color:var(--acc)">online</small></div>
+        <i class="fas fa-palette" onclick="mudarFundo()" style="margin-left:auto;"></i>
     </div>
-
     <div id="chat-container"></div>
-
     <div class="footer">
-        <button class="btn-icon" onclick="toggleDrawer()"><i class="fas fa-plus"></i></button>
-        <input type="text" id="msgInput" class="input-box" placeholder="Mensagem...">
-        <button class="btn-icon"><i class="fas fa-microphone"></i></button>
-        <button class="btn-icon" id="btnEnviar" style="margin-right: 5px;"><i class="fas fa-paper-plane"></i></button>
+        <button class="btn" onclick="toggleDrawer()"><i class="fas fa-plus"></i></button>
+        <input type="text" id="msgInput" class="input-box" placeholder="Sua vibe...">
+        <button class="btn"><i class="fas fa-microphone"></i></button>
+        <button class="btn" id="btnEnviar"><i class="fas fa-paper-plane"></i></button>
     </div>
-
     <div id="overlay" onclick="toggleDrawer()"></div>
     <div id="drawer">
-        <div class="drawer-item" onclick="document.getElementById('file-input').click()">
-            <div class="drawer-icon" style="background: #f0b90b;"><i class="fas fa-folder-open"></i></div>
-            <span>Arquivos</span>
-        </div>
-        <input type="file" id="file-input" hidden>
-
-        <div class="drawer-item" onclick="abrirAgenda()">
-            <div class="drawer-icon" style="background: #4b8df8;"><i class="fas fa-address-book"></i></div>
-            <span>Contatos</span>
-        </div>
-
-        <div class="drawer-item" onclick="mudarFundo()">
-            <div class="drawer-icon" style="background: #e91e63;"><i class="fas fa-image"></i></div>
-            <span>Fundo</span>
-        </div>
+        <div class="d-item" onclick="toggleDrawer()"><div class="d-icon" style="background:#f0b90b"><i class="fas fa-folder"></i></div><span>Arquivos</span></div>
+        <div class="d-item" onclick="abrirAgenda()"><div class="d-icon" style="background:#4b8df8"><i class="fas fa-address-book"></i></div><span>Contatos</span></div>
+        <div class="d-item" onclick="mudarFundo()"><div class="d-icon" style="background:#e91e63"><i class="fas fa-image"></i></div><span>Fundo</span></div>
     </div>
-
     <script>
-        // Configuração Firebase
-        var firebaseConfig = {
-            apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y",
-            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        var config = { apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y", databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(config);
         var db = firebase.database().ref("chat_vibe");
-        var meuID = localStorage.getItem("vibe_user") || "Michel Detilli";
+        var user = localStorage.getItem("vibe_user") || "Michel Detilli";
 
         window.onload = () => {
             const bg = localStorage.getItem('chat-bg');
             if(bg) document.body.style.backgroundImage = `url(${bg})`;
-            escutarMensagens();
+            db.on("value", s => {
+                const c = document.getElementById('chat-container'); c.innerHTML = '';
+                s.forEach(i => {
+                    const m = i.val(); const cl = m.nome === user ? 'mine' : 'other';
+                    c.innerHTML += `<div class="bubble ${cl}"><small style="color:var(--acc)">${m.nome}</small><br>${m.msg}</div>`;
+                });
+                c.scrollTop = c.scrollHeight;
+            });
         };
 
-        function enviar() {
-            var inp = document.getElementById('msgInput');
-            if (inp.value.trim() !== "") {
-                db.push({ nome: meuID, msg: inp.value, tipo: "texto", data: Date.now() });
-                inp.value = "";
-            }
-        }
-        document.getElementById('btnEnviar').onclick = enviar;
+        document.getElementById('btnEnviar').onclick = () => {
+            const i = document.getElementById('msgInput');
+            if(i.value.trim()){ db.push({nome:user, msg:i.value, data:Date.now()}); i.value=''; }
+        };
 
-        function escutarMensagens() {
-            db.on("value", function(snapshot) {
-                var cont = document.getElementById('chat-container');
-                cont.innerHTML = '';
-                snapshot.forEach(function(item) {
-                    var m = item.val();
-                    var classe = m.nome === meuID ? 'mine' : 'other';
-                    cont.innerHTML += `<div class="bubble ${classe}"><small>${m.nome}</small><br>${m.msg}</div>`;
-                });
-                cont.scrollTop = cont.scrollHeight;
-            });
-        }
-
-        // Funções de Interface
         function toggleDrawer() {
-            const drawer = document.getElementById('drawer');
-            const overlay = document.getElementById('overlay');
-            drawer.classList.toggle('open');
-            overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+            const d = document.getElementById('drawer'); const o = document.getElementById('overlay');
+            d.classList.toggle('open'); o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function mudarFundo() {
+            const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+            input.onchange = e => {
+                const r = new FileReader();
+                r.onload = () => {
+                    localStorage.setItem('chat-bg', r.result);
+                    document.body.style.backgroundImage = `url(${r.result})`;
+                    toggleDrawer();
+                };
+                r.readAsDataURL(e.target.files[0]);
+            };
+            input.click();
         }
 
         async function abrirAgenda() {
             if ('contacts' in navigator) {
                 try {
-                    const contacts = await navigator.contacts.select(['name', 'tel'], {multiple: false});
-                    if (contacts.length) {
-                        var tel = contacts[0].tel[0].replace(/\D/g, '');
-                        window.open(`https://wa.me/${tel}?text=Me chama no meu app: ${window.location.href}`, '_blank');
+                    const pts = await navigator.contacts.select(['name', 'tel'], {multiple: false});
+                    if (pts.length) {
+                        const tel = pts[0].tel[0].replace(/\D/g, '');
+                        window.open(`https://wa.me/${tel}?text=Me chama no meu app: ${window.location.href}`);
                     }
                 } catch (e) {}
-                toggleDrawer();
-            } else {
-                alert("Abra pelo PWA instalado.");
-                toggleDrawer();
-            }
-        }
-
-        function mudarFundo() {
-            const up = document.createElement('input');
-            up.type = 'file'; up.accept = 'image/*';
-            up.onchange = e => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    localStorage.setItem('chat-bg', reader.result);
-                    document.body.style.backgroundImage = `url(${reader.result})`;
-                    toggleDrawer();
-                };
-                reader.readAsDataURL(e.target.files[0]);
-            };
-            up.click();
+            } toggleDrawer();
         }
     </script>
 </body>
