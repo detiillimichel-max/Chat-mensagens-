@@ -1,11 +1,10 @@
 {
-  "name": "Chat-mensagens-",
-  "short_name": "Chat",
+  "name": "Chat Premium",
+  "short_name": "ChatVibe",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0b141a",
-  "theme_color": "#25d366",
-  "orientation": "portrait",
+  "background_color": "#0e1621",
+  "theme_color": "#17212b",
   "icons": [
     {
       "src": "icon-192.png",
