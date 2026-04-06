@@ -1,0 +1,26 @@
+<div class="message-container sent">
+    <div class="glass-card bubble">
+        <p class="message-text">Olá! Esta é uma mensagem com o fundo da sua galeria aparecendo suavemente.</p>
+        <span class="message-time">14:30</span>
+    </div>
+</div>
+
+<style>
+.message-container.sent {
+    display: flex;
+    justify-content: flex-end;
+    margin: 10px;
+}
+.bubble {
+    max-width: 80%;
+    border-radius: 18px 18px 4px 18px; /* Estilo Telegram */
+    color: white;
+}
+.message-time {
+    font-size: 10px;
+    color: var(--text-secondary);
+    float: right;
+    margin-top: 5px;
+}
+</style>
+
