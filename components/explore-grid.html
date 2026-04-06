@@ -1,0 +1,24 @@
+<div class="explore-container">
+    <div class="grid-item"><img src="media/sample1.jpg"></div>
+    <div class="grid-item"><img src="media/sample2.jpg"></div>
+    <div class="grid-item"><img src="media/sample3.jpg"></div>
+</div>
+
+<style>
+.explore-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    padding: 2px;
+}
+.grid-item {
+    aspect-ratio: 1 / 1;
+    background: #17212b;
+}
+.grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+</style>
+
