@@ -1,104 +1,91 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<title>Simple Node JS and Socket IO Chat</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
-	<script>
-  		var socket = io.connect('http://localhost:5432');
-  		
-		// add a new chat message
-		socket.on('add_message', function (name, data) {
-			$('#conversation_box').append('<b>'+name + ':</b> ' + data + '<br>');
-		});
-
-		// update user list
-		socket.on('update_users', function(names, emails) {
-			$('#users').empty();
-			$.each(names, function(key, value) {
-				$('#users').append('<div>' + value + ' (' + emails[key] + ')</div>');
-			});
-		});
-		
-		// update user count
-		socket.on('update_user_count', function(num) {
-			console.log(num);
-			$('#user_count').html(num);
-		});
-
-
-		$(document).ready(function(){
-			
-			// user clicks submit button
-			$('#send_message').click( function() {
-				
-				var message = $('#message').val();
-				
-				$('#message').val('');
-				$('#message').focus();
-				// send message to the server
-				socket.emit('send_message', message);
-			});
-			
-			
-			// User clicks the enter_chat button
-			$('#enter_chat').click(function(){
-				// emit the new_user function passing it the value of the name and email textbox if they are not empty
-				if($('#email').val() != "" && $('#name').val() != ""){
-					socket.emit('new_user', $('#name').val(), $('#email').val());
-					$('#new_user').fadeOut('fast', function(){
-						$('#chat').fadeIn();
-					});
-				} else {
-					alert("Please enter a valid Name and Email");
-				}
-			});
-	
-			// user hits enter in the message textbox
-			$('#message').keypress(function(e) {
-				if(e.which == 13) {
-					$(this).blur();
-					$('#send_message').focus().click();
-				}
-			});
-			
-			// user hits enter in email field
-			$('#email').keypress(function(e) {
-				if(e.which == 13) {
-					$(this).blur();
-					$('#enter_chat').focus().click();
-				}
-			});
-
-			
-			
-		});
-    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { margin:0; background:#0e1621; color:#fff; font-family:sans-serif; overflow:hidden; background-size:cover; background-position:center; }
+        .header { height:60px; background:#17212b; display:flex; align-items:center; padding:0 15px; }
+        #chat { height:calc(100vh - 130px); overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; }
+        .msg { max-width:80%; padding:10px; border-radius:15px; backdrop-filter:blur(5px); }
+        .mine { align-self:flex-end; background:#2b5278; }
+        .other { align-self:flex-start; background:#17212b; }
+        .footer { height:70px; background:#17212b; position:fixed; bottom:0; width:100%; display:flex; align-items:center; padding:0 10px; gap:8px; z-index:20; }
+        .in { flex:1; background:#242f3d; border:none; border-radius:20px; padding:10px; color:#fff; outline:none; }
+        #drawer { position:fixed; bottom:-200%; left:0; width:100%; height:250px; background:rgba(23,33,43,0.9); backdrop-filter:blur(20px); border-radius:25px 25px 0 0; transition:0.4s; z-index:100; display:grid; grid-template-columns:repeat(3,1fr); align-items:center; justify-items:center; }
+        #drawer.open { bottom:0; }
+        #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; z-index:90; }
+        .icon-btn { width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; }
+    </style>
 </head>
 <body>
+    <div class="header">
+        <b>Chat Global</b>
+        <i class="fas fa-palette" onclick="mudarFundo()" style="margin-left:auto;"></i>
+    </div>
+    <div id="chat"></div>
+    <div class="footer">
+        <i class="fas fa-plus" onclick="toggle()" style="color:#4b8df8; font-size:20px;"></i>
+        <input type="text" id="input" class="in" placeholder="Sua vibe...">
+        <i class="fas fa-microphone" style="color:#4b8df8; font-size:20px;"></i>
+        <i class="fas fa-paper-plane" id="send" style="color:#4b8df8; font-size:20px;"></i>
+    </div>
+    <div id="overlay" onclick="toggle()"></div>
+    <div id="drawer">
+        <div onclick="toggle()"><div class="icon-btn" style="background:#f0b90b"><i class="fas fa-folder"></i></div></div>
+        <div onclick="abrirAgenda()"><div class="icon-btn" style="background:#4b8df8"><i class="fas fa-address-book"></i></div></div>
+        <div onclick="mudarFundo()"><div class="icon-btn" style="background:#e91e63"><i class="fas fa-image"></i></div></div>
+    </div>
+    <script>
+        var config = { apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y", databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(config);
+        var db = firebase.database().ref("chat_vibe");
+        var user = localStorage.getItem("vibe_user") || "Michel Detilli";
 
-	<div id="new_user" style="display:none">
-		<input type="text" id="name" value="name" />
-		<input type="email" id="email" value="email" />
-		<input type="button" id="enter_chat" value="enter the chat" />
-	</div>
+        window.onload = () => {
+            const bg = localStorage.getItem('chat-bg');
+            if(bg) document.body.style.backgroundImage = `url(${bg})`;
+            db.on("value", s => {
+                const c = document.getElementById('chat'); c.innerHTML = '';
+                s.forEach(i => {
+                    const m = i.val(); const cl = m.nome === user ? 'mine' : 'other';
+                    c.innerHTML += `<div class="msg ${cl}"><small style="color:#4b8df8">${m.nome}</small><br>${m.msg}</div>`;
+                });
+                c.scrollTop = c.scrollHeight;
+            });
+        };
 
-	<h1 style="margin:10px;">Welcome to the Simple Chat App</h1>
+        document.getElementById('send').onclick = () => {
+            const i = document.getElementById('input');
+            if(i.value.trim()){ db.push({nome:user, msg:i.value}); i.value=''; }
+        };
 
-	<div id="chat" style="display:block">
-		
-		<div id="conversation_box" style="float:left; width:500px; height:400px; border:1px solid #ccc; display:block; padding:10px; margin:10px;">hello there...</div>
-		
-		<div id="user_list" style="float:left; width:300px; height:400px; padding:10px; border:1px solid #ccc; margin:10px;">
-			<b>USERS (<span id="user_count">0</span>)</b>
-			<div id="users"></div>
-			
-		</div>
-		
-		<div style="clear:both"></div>
-		
-		<input id="message" type="text" value="" style="margin:10px; padding:10px; font-size:16px;"  />
-		<input type="button" id="send_message" value="Submit" style="margin:10px; font-size:16px; padding:10px; border:0px; background:#ccc" />
-	</div>
-	
+        function toggle() {
+            const d = document.getElementById('drawer'); const o = document.getElementById('overlay');
+            d.classList.toggle('open'); o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
+
+        function mudarFundo() {
+            const u = document.createElement('input'); u.type = 'file'; u.accept = 'image/*';
+            u.onchange = e => {
+                const r = new FileReader();
+                r.onload = () => { localStorage.setItem('chat-bg', r.result); document.body.style.backgroundImage = `url(${r.result})`; toggle(); };
+                r.readAsDataURL(e.target.files[0]);
+            };
+            u.click();
+        }
+
+        async function abrirAgenda() {
+            if ('contacts' in navigator) {
+                try {
+                    const p = await navigator.contacts.select(['tel'], {multiple: false});
+                    if (p.length) window.open(`https://wa.me/${p[0].tel[0].replace(/\D/g,'')}?text=Vibe-App`);
+                } catch (e) {}
+            } toggle();
+        }
+    </script>
 </body>
 </html>
