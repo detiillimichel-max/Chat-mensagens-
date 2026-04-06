@@ -1,269 +1,172 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Chat-mensagens</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Premium</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0e1621;
+            --bar-dark: #17212b;
+            --accent-blue: #4b8df8;
+            --glass: rgba(23, 33, 43, 0.8);
+        }
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#25d366">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="icon-192.png">
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: sans-serif; background-color: var(--bg-dark);
+            background-size: cover; background-position: center; color: white; overflow: hidden;
+        }
 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+        /* Header */
+        .header {
+            height: 60px; background: var(--bar-dark); display: flex;
+            align-items: center; padding: 0 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
 
-  <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#0b141a; color:#fff; overflow: hidden; }
+        /* Container de Mensagens */
+        #chat-container {
+            height: calc(100vh - 130px); overflow-y: auto; padding: 15px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
 
-    /* TELAS */
-    .screen { display:none; height:100vh; }
-    .active { display:flex; flex-direction:column; }
+        .bubble {
+            max-width: 80%; padding: 10px 15px; border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2); font-size: 15px;
+        }
+        .mine { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 2px; }
+        .other { align-self: flex-start; background: var(--bar-dark); border-bottom-left-radius: 2px; }
 
-    /* HEADER */
-    header {
-      padding:15px;
-      background:#202c33;
-      font-weight:bold;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
+        /* Barra Inferior */
+        .footer {
+            height: 70px; background: var(--bar-dark); position: fixed; bottom: 0;
+            width: 100%; display: flex; align-items: center; padding: 0 10px; gap: 10px;
+        }
 
-    /* LISTA */
-    #lista { flex:1; overflow:auto; }
+        .input-box {
+            flex: 1; background: #242f3d; border: none; border-radius: 25px;
+            padding: 10px 18px; color: white; outline: none; font-size: 16px;
+        }
 
-    .item {
-      padding:20px;
-      border-bottom:1px solid #222;
-      cursor:pointer;
-      transition: background 0.3s;
-    }
+        .btn-icon { background: none; border: none; color: var(--accent-blue); font-size: 24px; cursor: pointer; }
 
-    .item:hover { background:#1a1a1a; }
+        /* GAVETA DE VIDRO (Bottom Sheet) */
+        #drawer {
+            position: fixed; bottom: -300px; left: 0; width: 100%; height: 250px;
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.1); border-radius: 25px 25px 0 0;
+            transition: bottom 0.3s ease; z-index: 100;
+            display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
+        }
 
-    /* CHAT */
-    #chat { flex:1; overflow:auto; padding:10px; display:flex; flex-direction:column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-attachment: fixed; }
+        #drawer.open { bottom: 0; }
 
-    .msg {
-      max-width:75%;
-      padding:10px;
-      margin:5px;
-      border-radius:12px;
-      word-wrap: break-word;
-      font-size: 14px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    }
+        .drawer-item {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            color: white; font-size: 13px; text-decoration: none;
+        }
 
-    .me { background:#005c4b; align-self:flex-end; border-bottom-right-radius: 2px; }
-    .other { background:#202c33; align-self:flex-start; border-bottom-left-radius: 2px; }
+        .drawer-icon {
+            width: 55px; height: 55px; border-radius: 50%; background: var(--accent-blue);
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
 
-    /* INPUT BARRA */
-    .barra {
-      display:flex;
-      padding:10px;
-      gap:10px;
-      background:#202c33;
-      align-items:center;
-    }
-
-    input#msg {
-      flex:1;
-      padding:12px;
-      border-radius:25px;
-      border:none;
-      background: #2a3942;
-      color: white;
-      outline: none;
-    }
-
-    .icon { cursor:pointer; font-size: 20px; color: #8696a0; }
-
-    .btn {
-      background:#25d366;
-      border:none;
-      width:45px;
-      height:45px;
-      border-radius:50%;
-      color:#fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-  </style>
+        /* Overlay para fechar a gaveta ao clicar fora */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; z-index: 90;
+        }
+    </style>
 </head>
-
 <body>
 
-<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+    <div class="header">
+        <i class="fas fa-bars"></i>
+        <div style="margin-left: 20px;">
+            <b>Chat Global</b><br>
+            <small style="color: var(--accent-blue)">online</small>
+        </div>
+        <button onclick="mudarFundo()" style="margin-left: auto; background: none; border: none; color: white; font-size: 18px;"><i class="fas fa-palette"></i></button>
+    </div>
 
-<div id="listaScreen" class="screen active">
-  <header>Conversas</header>
-  <div id="lista"></div>
-</div>
+    <div id="chat-container">
+        <div class="bubble other">Bem-vindo ao novo Chat!</div>
+        <div class="bubble mine">Obrigado! O visual está incrível.</div>
+    </div>
 
-<div id="chatScreen" class="screen">
-  <header>
-    <i class="fa-solid fa-arrow-left" onclick="voltar()"></i>
-    <span id="nomeChat">Chat Global</span>
-  </header>
+    <div class="footer">
+        <button class="btn-icon" onclick="toggleDrawer()"><i class="fas fa-plus"></i></button>
+        <input type="text" class="input-box" placeholder="Mensagem...">
+        <button class="btn-icon"><i class="fas fa-microphone"></i></button>
+        <button class="btn-icon"><i class="fas fa-paper-plane"></i></button>
+    </div>
 
-  <div id="chat"></div>
+    <div id="overlay" onclick="toggleDrawer()"></div>
+    <div id="drawer">
+        <div class="drawer-item" onclick="document.getElementById('file-input').click()">
+            <div class="drawer-icon" style="background: #f0b90b;"><i class="fas fa-folder-open"></i></div>
+            <span>Arquivos</span>
+        </div>
+        <input type="file" id="file-input" hidden>
 
-  <div class="barra">
-    <i class="fa-solid fa-camera icon" onclick="abrirGaleria()"></i>
-    <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
+        <div class="drawer-item" onclick="abrirAgenda()">
+            <div class="drawer-icon" style="background: #4b8df8;"><i class="fas fa-address-book"></i></div>
+            <span>Contatos</span>
+        </div>
 
-    <input id="msg" placeholder="Mensagem" autocomplete="off">
+        <div class="drawer-item" onclick="mudarFundo()">
+            <div class="drawer-icon" style="background: #e91e63;"><i class="fas fa-image"></i></div>
+            <span>Fundo</span>
+        </div>
+    </div>
 
-    <button class="btn" onclick="enviar()">
-      <i class="fa-solid fa-paper-plane"></i>
-    </button>
-  </div>
-</div>
+    <audio id="pop-sound" src="pop.mp3" preload="auto"></audio>
 
-<input type="file" id="fileInput" accept="image/*" style="display:none">
-
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
-<script>
-  // CONFIGURAÇÃO FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbItrAXq7Y",
-    databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
-    projectId: "vibe-app-bbba2"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  const nick = localStorage.getItem("vibe_user") || prompt("Seu nome:") || "Usuário";
-  if(!localStorage.getItem("vibe_user")) localStorage.setItem("vibe_user", nick);
-
-  let chatAtual = "global";
-
-  // CARREGAR LISTA INICIAL
-  function carregarLista(){
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = "💬 Chat Global";
-    div.onclick = () => abrirChat("global");
-    lista.appendChild(div);
-  }
-
-  carregarLista();
-
-  // ABRIR CHAT
-  function abrirChat(id){
-    chatAtual = id;
-    document.getElementById("listaScreen").classList.remove("active");
-    document.getElementById("chatScreen").classList.add("active");
-
-    const chatDiv = document.getElementById("chat");
-    chatDiv.innerHTML = "";
-
-    // Escutar mensagens em tempo real
-    db.ref("chat_vibe").limitToLast(50).on("child_added", snap => {
-      const m = snap.val();
-      const div = document.createElement("div");
-      div.className = "msg " + (m.autor === nick ? "me" : "other");
-
-      if(m.tipo === "foto"){
-        div.innerHTML = `<img src="${m.imagem}" style="width:100%; border-radius:8px;">`;
-      }
-      else if(m.tipo === "audio"){
-        div.innerHTML = `<audio controls src="${m.audio}" style="width:200px;"></audio>`;
-      }
-      else{
-        div.innerText = m.autor + ": " + m.texto;
-      }
-
-      chatDiv.appendChild(div);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-
-      if(m.autor !== nick){
-        document.getElementById("som").play().catch(()=>{});
-      }
-    });
-  }
-
-  function voltar(){
-    document.getElementById("chatScreen").classList.remove("active");
-    document.getElementById("listaScreen").classList.add("active");
-    db.ref("chat_vibe").off(); // Para de ouvir quando sai do chat
-  }
-
-  function enviar(){
-    const inputMsg = document.getElementById("msg");
-    if(!inputMsg.value.trim()) return;
-
-    db.ref("chat_vibe").push({
-      autor: nick,
-      texto: inputMsg.value,
-      tipo: "texto",
-      timestamp: Date.now()
-    });
-
-    inputMsg.value = "";
-  }
-
-  // FOTOS
-  function abrirGaleria(){ document.getElementById("fileInput").click(); }
-
-  document.getElementById("fileInput").onchange = e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = ev => {
-      db.ref("chat_vibe").push({
-        autor: nick,
-        imagem: ev.target.result,
-        tipo: "foto"
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // ÁUDIO
-  let recorder;
-  let chunks = [];
-
-  document.getElementById("btnAudio").onclick = async () => {
-    if(!recorder || recorder.state === "inactive"){
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-        recorder = new MediaRecorder(stream);
-        chunks = [];
-        recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
-          const blob = new Blob(chunks);
-          const reader = new FileReader();
-          reader.onload = ev => {
-            db.ref("chat_vibe").push({ autor: nick, audio: ev.target.result, tipo: "audio" });
-          };
-          reader.readAsDataURL(blob);
+    <script>
+        // Carrega wallpaper salvo
+        window.onload = () => {
+            const bg = localStorage.getItem('chat-bg');
+            if(bg) document.body.style.backgroundImage = `url(${bg})`;
         };
-        recorder.start();
-        document.getElementById("btnAudio").style.color = "red";
-      } catch(err) { alert("Permita o uso do microfone."); }
-    } else {
-      recorder.stop();
-      document.getElementById("btnAudio").style.color = "#8696a0";
-    }
-  };
 
-  // REGISTRAR SERVICE WORKER (PARA PWA)
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker registrado com sucesso!', reg))
-        .catch(err => console.error('Falha ao registrar Service Worker:', err));
-    });
-  }
-</script>
+        // Abre/Fecha Gaveta
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer');
+            const overlay = document.getElementById('overlay');
+            drawer.classList.toggle('open');
+            overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+        }
 
+        // Função para Mudar o Fundo
+        function mudarFundo() {
+            const up = document.createElement('input');
+            up.type = 'file'; up.accept = 'image/*';
+            up.onchange = e => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    localStorage.setItem('chat-bg', reader.result);
+                    document.body.style.backgroundImage = `url(${reader.result})`;
+                    toggleDrawer(); // Fecha a gaveta após mudar
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            };
+            up.click();
+        }
+
+        // Função para Agenda Nativa
+        async function abrirAgenda() {
+            if ('contacts' in navigator) {
+                try {
+                    const props = ['name', 'tel'];
+                    const contacts = await navigator.contacts.select(props, {multiple: false});
+                    if (contacts.length) alert("Selecionado: " + contacts[0].name + " - " + contacts[0].tel[0]);
+                } catch (e) { alert("Acesso à agenda negado ou não suportado."); }
+            } else {
+                alert("Use o app instalado no celular para acessar contatos.");
+            }
+        }
+    </script>
 </body>
 </html>
