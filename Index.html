@@ -3,139 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#1a73e8">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Vibe OIO">
-    <link rel="manifest" href="./manifest.json">
-    <title>Vibe - OIO ONE</title>
+    <title>OIO ONE - Messenger</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/theme.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { 
+            --fb-blue: #1877f2; 
+            --fb-bg: #f0f2f5; 
+            --fb-white: #ffffff; 
+            --msg-mine: #0084ff; 
+            --msg-other: #e4e6eb; 
+        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--fb-bg); overflow: hidden; }
+        
+        .header { 
+            height: 55px; background: var(--fb-white); display: flex; align-items: center; 
+            padding: 0 15px; border-bottom: 1px solid #dbdbdb; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #chat { 
+            height: calc(100vh - 125px); overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 10px; 
+        }
+
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 20px; font-size: 15px; line-height: 1.4; }
+        .mine { align-self: flex-end; background: var(--msg-mine); color: white; border-bottom-right-radius: 4px; }
+        .other { align-self: flex-start; background: var(--msg-other); color: black; border-bottom-left-radius: 4px; }
+
+        .footer { 
+            height: 70px; background: var(--fb-white); position: fixed; bottom: 0; width: 100%; 
+            display: flex; align-items: center; padding: 0 12px; gap: 10px; border-top: 1px solid #dbdbdb;
+        }
+
+        .in { 
+            flex: 1; background: #f0f2f5; border: none; border-radius: 20px; 
+            padding: 10px 15px; outline: none; font-size: 16px;
+        }
+
+        .btn-fb { background: none; border: none; color: var(--fb-blue); font-size: 22px; cursor: pointer; }
+    </style>
 </head>
 <body>
 
+    <div class="header">
+        <i class="fab fa-facebook-messenger" style="color: var(--fb-blue); font-size: 28px;"></i>
+        <div style="margin-left: 12px;">
+            <b style="font-size: 16px;">Chat Global</b><br>
+            <small style="color: #31a24c;">● Online</small>
+        </div>
+    </div>
+
     <div id="chat"></div>
 
-    <div class="barra">
-        <i class="fa-solid fa-camera icon" id="btnFoto"></i>
-        <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
-        <input type="text" id="msgInput" placeholder="Sua vibe..." autocomplete="off">
-        <i class="fa-solid fa-plus icon" onclick="abrirGaveta()"></i>
-        <i class="fa-solid fa-paper-plane icon" id="btnEnviar"></i>
+    <div class="footer">
+        <button class="btn-fb"><i class="fas fa-plus-circle"></i></button>
+        <input type="text" id="input" class="in" placeholder="Aa">
+        <button class="btn-fb" id="send"><i class="fas fa-paper-plane"></i></button>
     </div>
-
-    <div id="gaveta-ehub" class="gaveta-container">
-        <div class="handle-area" onclick="fecharGaveta()">
-            <div class="handle-bar"></div>
-        </div>
-        <div class="gaveta-content">
-            <h3 style="color:#1a73e8; margin-bottom:20px;">e-Hub OIO ONE</h3>
-            <div class="grid-apps">
-                <div class="app-item" onclick="galeriaHub()">
-                    <i class="fa-solid fa-images"></i>
-                    <span>Galeria</span>
-                </div>
-                <div class="app-item" onclick="abrirAppHub('google')">
-                    <i class="fa-brands fa-google"></i>
-                    <span>Google</span>
-                </div>
-                <div class="app-item" onclick="abrirAppHub('toc_azul')">
-                    <i class="fa-solid fa-video" style="color:#007bff;"></i>
-                    <span>Toc Vídeos</span>
-                </div>
-                <div class="app-item" onclick="abrirAppHub('jogos')">
-                    <i class="fa-solid fa-gamepad" style="color:#28a745;"></i>
-                    <span>Jogos</span>
-                </div>
-                <div class="app-item" onclick="abrirAppHub('prefeitura')">
-                    <i class="fa-solid fa-city"></i>
-                    <span>BJ Perdões</span>
-                </div>
-                <div class="app-item" onclick="abrirAppHub('nostalgia')">
-                    <i class="fa-solid fa-tv" style="color:#ff9800;"></i>
-                    <span>Nostalgia</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <input type="file" id="fotoInput" style="display:none;" accept="image/*">
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="js/script.js"></script>
-    <script src="app/ehub_logic.js"></script>
-    <script src="app/nostalgia.js"></script>
-    <script src="app/jogos.js"></script>
 
     <script>
-        // ── PEDE PERMISSÃO DIRETO, SEM DEPENDER DO SW ──
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-
-        // ── REGISTRA O SERVICE WORKER ──
-        var swReg = null;
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(function(reg) {
-                    swReg = reg;
-                    console.log('OIO: SW registrado');
-                })
-                .catch(function(e) {
-                    console.log('OIO: SW erro', e);
-                });
-        }
-
-        // ── SOM ──
-        window.OioSom = {
-            ctx: null,
-            ativar: function() {
-                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            },
-            tocar: function(notas) {
-                this.ativar();
-                notas.forEach(function(item) {
-                    var freq = item[0]; var delay = item[1];
-                    var osc = window.OioSom.ctx.createOscillator();
-                    var gain = window.OioSom.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, window.OioSom.ctx.currentTime + delay);
-                    gain.gain.setValueAtTime(0.5, window.OioSom.ctx.currentTime + delay);
-                    gain.gain.exponentialRampToValueAtTime(0.001, window.OioSom.ctx.currentTime + delay + 0.3);
-                    osc.connect(gain); gain.connect(window.OioSom.ctx.destination);
-                    osc.start(window.OioSom.ctx.currentTime + delay);
-                    osc.stop(window.OioSom.ctx.currentTime + delay + 0.4);
-                });
-            },
-            mensagem: function() { this.tocar([[880,0],[1100,0.2],[1320,0.4]]); },
-            clique: function() { this.tocar([[660,0],[880,0.15]]); }
+        // Sua configuração do Firebase
+        var config = { 
+            apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y", 
+            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/" 
         };
+        
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        var db = firebase.database().ref("mensagens");
+        var user = "Michel";
 
-        // ── NOTIFICAÇÃO ──
-        window.notificarVibe = function(titulo, corpo) {
-            if (navigator.vibrate) navigator.vibrate([300,100,300,100,300]);
-            if (window.OioSom) window.OioSom.mensagem();
-            if (Notification.permission === 'granted') {
-                var reg = swReg;
-                if (reg) {
-                    reg.showNotification(titulo, {
-                        body: corpo,
-                        icon: './icon-192-1.png',
-                        vibrate: [300,100,300,100,300],
-                        tag: 'vibe-' + Date.now(),
-                        renotify: true
-                    });
-                } else {
-                    new Notification(titulo, { body: corpo, icon: './icon-192-1.png' });
-                }
+        // Escutar mensagens
+        db.limitToLast(30).on("value", snapshot => {
+            const container = document.getElementById('chat');
+            container.innerHTML = '';
+            snapshot.forEach(item => {
+                const data = item.val();
+                const type = data.nome === user ? 'mine' : 'other';
+                container.innerHTML += `<div class="msg ${type}">${data.msg}</div>`;
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+
+        // Enviar mensagem
+        document.getElementById('send').onclick = () => {
+            const input = document.getElementById('input');
+            if (input.value.trim() !== "") {
+                db.push({ nome: user, msg: input.value, timestamp: Date.now() });
+                input.value = '';
             }
         };
 
-        document.addEventListener('touchstart', function() { window.OioSom.ativar(); }, { once: true });
-        document.addEventListener('click', function() { window.OioSom.ativar(); }, { once: true });
+        // CORREÇÃO DO ERRO DO INDEX: Registro seguro do Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log("SW opcional"));
+            });
+        }
     </script>
 </body>
 </html>
