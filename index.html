@@ -1,177 +1,135 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat-mensagens PRO</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { --bar: #17212b; --acc: #4b8df8; --glass: rgba(23, 33, 43, 0.8); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; background: #0e1621; color: white; overflow: hidden; background-size: cover; background-position: center; }
+        
+        /* Header Premium */
+        .header { height: 60px; background: var(--bar); display: flex; align-items: center; padding: 0 15px; position: relative; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        /* Container de Mensagens */
+        #chat { height: calc(100vh - 140px); overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 18px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .mine { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 4px; }
+        .other { align-self: flex-start; background: var(--bar); border-bottom-left-radius: 4px; }
+        
+        /* Footer / Barra de Digitação */
+        .footer { height: 80px; background: var(--bar); position: fixed; bottom: 0; width: 100%; display: flex; align-items: center; padding: 0 12px; gap: 10px; box-sizing: border-box; z-index: 20; }
+        .in { flex: 1; background: #242f3d; border: none; border-radius: 25px; padding: 12px 18px; color: white; outline: none; font-size: 16px; }
+        .btn-acc { background: none; border: none; color: var(--acc); font-size: 22px; cursor: pointer; transition: 0.2s; }
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#25d366">
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
-<style>
-body { margin:0; font-family:Arial; background:#0b141a; color:#fff; }
-#chat { flex:1; overflow:auto; padding:10px; display:flex; flex-direction:column; }
-.msg { max-width:75%; padding:10px; margin:5px; border-radius:12px; }
-.me { background:#005c4b; align-self:flex-end; }
-.other { background:#202c33; align-self:flex-start; }
-.barra { display:flex; gap:10px; padding:10px; background:#202c33; }
-input { flex:1; padding:10px; border-radius:20px; border:none; background:#2a3942; color:white; }
-.icon { font-size:20px; cursor:pointer; }
-.btn { background:#25d366; border:none; width:45px; height:45px; border-radius:50%; color:white; }
-</style>
+        /* GAVETA CORRIGIDA (Soma total) */
+        #drawer { position: fixed; bottom: -100%; left: 0; width: 100%; height: 280px; background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 30px 30px 0 0; transition: 0.4s cubic-bezier(0.17, 0.67, 0.12, 1); z-index: 100; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center; border-top: 1px solid rgba(255,255,255,0.1); }
+        #drawer.open { bottom: 0; }
+        
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 90; }
+        
+        .d-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .d-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    </style>
 </head>
-
 <body>
 
-<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+    <div class="header">
+        <i class="fas fa-bars"></i>
+        <div style="margin-left: 15px;">
+            <b>Chat Global</b><br>
+            <small style="color: var(--acc)">online</small>
+        </div>
+        <i class="fas fa-palette" onclick="mudarFundo()" style="margin-left: auto; font-size: 20px;"></i>
+    </div>
 
-<div id="chat"></div>
+    <div id="chat"></div>
 
-<div class="barra">
-  <i class="fa-solid fa-image icon" onclick="abrirGaleria()"></i>
-  <i class="fa-solid fa-music icon" onclick="abrirMusica()"></i>
-  <i class="fa-solid fa-microphone icon" id="btnAudio"></i>
-  <input id="msg" placeholder="Mensagem">
-  <button class="btn" onclick="enviar()">➤</button>
-</div>
+    <div class="footer">
+        <button class="btn-acc" onclick="toggle()"><i class="fas fa-plus"></i></button>
+        <input type="text" id="input" class="in" placeholder="Sua vibe...">
+        <button class="btn-acc"><i class="fas fa-microphone"></i></button>
+        <button class="btn-acc" id="send"><i class="fas fa-paper-plane"></i></button>
+    </div>
 
-<input type="file" id="fileInput" accept="image/*" hidden>
-<input type="file" id="musicInput" accept="audio/*" hidden>
+    <div id="overlay" onclick="toggle()"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <div id="drawer">
+        <div class="d-item" onclick="toggle()"><div class="d-icon" style="background:#f0b90b"><i class="fas fa-folder"></i></div><span>Arquivos</span></div>
+        <div class="d-item" onclick="abrirAgenda()"><div class="d-icon" style="background:#4b8df8"><i class="fas fa-address-book"></i></div><span>Contatos</span></div>
+        <div class="d-item" onclick="mudarFundo()"><div class="d-icon" style="background:#e91e63"><i class="fas fa-image"></i></div><span>Fundo</span></div>
+    </div>
 
-<script>
-// 🔥 FIREBASE
-firebase.initializeApp({
-  apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbItrAXq7Y",
-  databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
-  storageBucket: "vibe-app-bbba2.appspot.com"
-});
+    <script>
+        // Configurações do seu Firebase extraídas do script.js
+        var config = { 
+            apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y", 
+            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/" 
+        };
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        var db = firebase.database().ref("chat_vibe");
+        var user = localStorage.getItem("vibe_user") || "Michel Detilli";
 
-var db = firebase.database().ref("chat_vibe");
-var storage = firebase.storage();
+        // Carregar fundo e mensagens
+        window.onload = () => {
+            const bg = localStorage.getItem('chat-bg');
+            if(bg) document.body.style.backgroundImage = `url(${bg})`;
+            
+            db.on("value", s => {
+                const c = document.getElementById('chat');
+                c.innerHTML = '';
+                s.forEach(i => {
+                    const m = i.val();
+                    const cl = m.nome === user ? 'mine' : 'other';
+                    c.innerHTML += `<div class="msg ${cl}"><small style="color:var(--acc)">${m.nome}</small><br>${m.msg}</div>`;
+                });
+                c.scrollTop = c.scrollHeight;
+            });
+        };
 
-// USER
-var nick = localStorage.getItem("vibe_user") || prompt("Nome:");
-localStorage.setItem("vibe_user", nick);
+        // Enviar Mensagem
+        document.getElementById('send').onclick = () => {
+            const i = document.getElementById('input');
+            if(i.value.trim()){
+                db.push({ nome: user, msg: i.value, data: Date.now() });
+                i.value = '';
+            }
+        };
 
-// 🔊 SOM
-document.body.onclick = ()=>{
-  var s=document.getElementById("som");
-  s.play().then(()=>{s.pause();s.currentTime=0;}).catch(()=>{});
-};
+        // Funções de Interface
+        function toggle() {
+            const d = document.getElementById('drawer');
+            const o = document.getElementById('overlay');
+            d.classList.toggle('open');
+            o.style.display = d.classList.contains('open') ? 'block' : 'none';
+        }
 
-// RECEBER
-db.limitToLast(50).on("child_added", snap => {
+        function mudarFundo() {
+            const u = document.createElement('input'); u.type = 'file'; u.accept = 'image/*';
+            u.onchange = e => {
+                const r = new FileReader();
+                r.onload = () => {
+                    localStorage.setItem('chat-bg', r.result);
+                    document.body.style.backgroundImage = `url(${r.result})`;
+                    if(document.getElementById('drawer').classList.contains('open')) toggle();
+                };
+                r.readAsDataURL(e.target.files[0]);
+            };
+            u.click();
+        }
 
-  var m = snap.val();
-  var chat = document.getElementById("chat");
-
-  var div = document.createElement("div");
-  div.className = "msg " + (m.autor === nick ? "me" : "other");
-
-  if(m.tipo === "foto"){
-    div.innerHTML = "<img src='"+m.url+"' style='width:100%'>";
-  }
-  else if(m.tipo === "audio" || m.tipo === "musica"){
-    div.innerHTML = "<audio controls src='"+m.url+"'></audio>";
-  }
-  else{
-    div.innerText = m.autor + ": " + m.texto;
-  }
-
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-
-  if(m.autor !== nick){
-    document.getElementById("som").play().catch(()=>{});
-  }
-});
-
-// TEXTO
-function enviar(){
-  var txt = msg.value;
-  if(!txt) return;
-
-  db.push({ autor:nick, texto:txt, tipo:"texto" });
-  msg.value="";
-}
-
-// 📷 FOTO (UPLOAD REAL)
-function abrirGaleria(){
-  fileInput.click();
-}
-
-fileInput.onchange = async e=>{
-  var file = e.target.files[0];
-
-  var ref = storage.ref("fotos/" + Date.now());
-  await ref.put(file);
-
-  var url = await ref.getDownloadURL();
-
-  db.push({ autor:nick, url:url, tipo:"foto" });
-};
-
-// 🎵 MUSICA (UPLOAD REAL)
-function abrirMusica(){
-  musicInput.click();
-}
-
-musicInput.onchange = async e=>{
-  var file = e.target.files[0];
-
-  var ref = storage.ref("musicas/" + Date.now());
-  await ref.put(file);
-
-  var url = await ref.getDownloadURL();
-
-  db.push({ autor:nick, url:url, tipo:"musica" });
-};
-
-// 🎤 AUDIO (UPLOAD REAL)
-var rec;
-var chunks=[];
-
-btnAudio.onclick = async function(){
-
-  if(!rec || rec.state==="inactive"){
-
-    var stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    rec = new MediaRecorder(stream);
-    chunks=[];
-
-    rec.ondataavailable = e=>{
-      if(e.data.size>0) chunks.push(e.data);
-    };
-
-    rec.onstop = async ()=>{
-
-      var blob = new Blob(chunks,{type:"audio/webm"});
-
-      var ref = storage.ref("audios/" + Date.now());
-      await ref.put(blob);
-
-      var url = await ref.getDownloadURL();
-
-      db.push({ autor:nick, url:url, tipo:"audio" });
-    };
-
-    rec.start();
-    btnAudio.style.color="red";
-
-  } else {
-
-    rec.stop();
-    btnAudio.style.color="white";
-
-  }
-};
-</script>
-
+        async function abrirAgenda() {
+            if ('contacts' in navigator) {
+                try {
+                    const p = await navigator.contacts.select(['tel'], {multiple: false});
+                    if (p.length) window.open(`https://wa.me/${p[0].tel[0].replace(/\D/g,'')}?text=Vibe-App`);
+                } catch (e) {}
+            }
+            toggle();
+        }
+    </script>
 </body>
 </html>
