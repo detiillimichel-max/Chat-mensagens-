@@ -1,0 +1,57 @@
+:root {
+    --bg-telegram: #0e1621;
+    --bg-header: #17212b;
+    --text-primary: #ffffff;
+    --text-secondary: #708499;
+    --accent-blue: #1DA1F2; /* Azul Twitter */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg-telegram);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    overflow: hidden; /* Evita scroll na página inteira, controlamos no main */
+    height: 100vh;
+}
+
+.app-header {
+    background-color: var(--bg-header);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 65px;
+    background-color: var(--bg-header);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.nav-item.active {
+    color: var(--accent-blue);
+}
+
