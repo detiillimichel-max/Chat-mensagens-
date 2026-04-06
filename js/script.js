@@ -1,8 +1,6 @@
 // LOGIN
 var nick = localStorage.getItem("vibe_user");
-if (!nick) {
-    window.location.href = "login.html";
-}
+if (!nick) location.href = "login.html";
 
 // FIREBASE
 var firebaseConfig = {
@@ -10,30 +8,28 @@ var firebaseConfig = {
     databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
 var db = firebase.database().ref("chat_vibe");
 
 // SOM
 var somMsg = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 
-document.addEventListener("click", function() {
-    somMsg.play().then(function(){
+// desbloqueia som no celular
+document.body.addEventListener("touchstart", function () {
+    somMsg.play().then(function () {
         somMsg.pause();
         somMsg.currentTime = 0;
-    }).catch(function(){});
+    }).catch(function () {});
 }, { once: true });
 
 var primeiraVez = true;
 
 // RECEBER
-db.limitToLast(50).on("child_added", function(snap){
+db.limitToLast(50).on("child_added", function (snap) {
 
     var m = snap.val();
     var chat = document.getElementById("chat");
-    if (!chat) return;
 
     var div = document.createElement("div");
     div.className = "balao";
@@ -41,12 +37,15 @@ db.limitToLast(50).on("child_added", function(snap){
     div.style.alignSelf = m.autor === nick ? "flex-end" : "flex-start";
 
     if (m.tipo === "foto") {
-        div.innerHTML = "<img src='"+m.imagem+"' style='width:100%;border-radius:10px'>";
-    }
-    else if (m.tipo === "audio") {
-        div.innerHTML = "<audio controls src='"+m.audio+"' style='width:100%'></audio>";
-    }
-    else {
+
+        div.innerHTML = "<img src='" + m.imagem + "' style='width:100%;border-radius:10px'>";
+
+    } else if (m.tipo === "audio") {
+
+        div.innerHTML = "<audio controls src='" + m.audio + "' style='width:100%'></audio>";
+
+    } else {
+
         div.innerText = m.texto || "";
     }
 
@@ -56,21 +55,20 @@ db.limitToLast(50).on("child_added", function(snap){
     // SOM
     if (m.autor !== nick && !primeiraVez) {
         somMsg.currentTime = 0;
-        somMsg.play().catch(function(){});
+        somMsg.play().catch(function () {});
         if (navigator.vibrate) navigator.vibrate(100);
     }
 });
 
 // evita som inicial
-setTimeout(function(){
+setTimeout(function () {
     primeiraVez = false;
 }, 2000);
 
 // ENVIAR TEXTO
-document.getElementById("btnEnviar").onclick = function(){
+document.getElementById("btnEnviar").onclick = function () {
 
     var txt = document.getElementById("msgInput").value;
-
     if (!txt) return;
 
     db.push({
@@ -84,21 +82,18 @@ document.getElementById("btnEnviar").onclick = function(){
 };
 
 // FOTO
-var btnFoto = document.getElementById("btnFoto");
-var fotoInput = document.getElementById("fotoInput");
-
-btnFoto.onclick = function(){
-    fotoInput.click();
+document.getElementById("btnFoto").onclick = function () {
+    document.getElementById("fotoInput").click();
 };
 
-fotoInput.onchange = function(e){
+document.getElementById("fotoInput").onchange = function (e) {
 
     var file = e.target.files[0];
     if (!file) return;
 
     var reader = new FileReader();
 
-    reader.onload = function(event){
+    reader.onload = function (event) {
         db.push({
             autor: nick,
             imagem: event.target.result,
@@ -110,13 +105,11 @@ fotoInput.onchange = function(e){
     reader.readAsDataURL(file);
 };
 
-// AUDIO
+// AUDIO CORRIGIDO
 var mediaRecorder;
 var chunks = [];
 
-var btnAudio = document.getElementById("btnAudio");
-
-btnAudio.onclick = async function(){
+document.getElementById("btnAudio").onclick = async function () {
 
     if (!mediaRecorder || mediaRecorder.state === "inactive") {
 
@@ -125,17 +118,18 @@ btnAudio.onclick = async function(){
         mediaRecorder = new MediaRecorder(stream);
         chunks = [];
 
-        mediaRecorder.ondataavailable = function(e){
-            chunks.push(e.data);
+        mediaRecorder.ondataavailable = function (e) {
+            if (e.data.size > 0) chunks.push(e.data);
         };
 
-        mediaRecorder.onstop = function(){
+        mediaRecorder.onstop = function () {
 
             var blob = new Blob(chunks, { type: "audio/webm" });
 
+            // 🔥 CONVERSÃO CORRETA
             var reader = new FileReader();
 
-            reader.onloadend = function(){
+            reader.onloadend = function () {
                 db.push({
                     autor: nick,
                     audio: reader.result,
@@ -147,12 +141,12 @@ btnAudio.onclick = async function(){
             reader.readAsDataURL(blob);
         };
 
-        mediaRecorder.start();
-        btnAudio.style.color = "red";
+        mediaRecorder.start(100); // 🔥 força chunks válidos
+        document.getElementById("btnAudio").style.color = "red";
 
     } else {
 
         mediaRecorder.stop();
-        btnAudio.style.color = "#25d366";
+        document.getElementById("btnAudio").style.color = "#25d366";
     }
 };
