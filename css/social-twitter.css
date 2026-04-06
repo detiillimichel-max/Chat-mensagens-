@@ -1,0 +1,33 @@
+.btn-twitter-plus {
+    position: fixed;
+    right: 20px;
+    bottom: 85px; /* Acima da bottom-nav */
+    width: 56px;
+    height: 56px;
+    background-color: var(--accent-blue);
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(29, 161, 242, 0.3);
+    z-index: 10;
+}
+
+.btn-twitter-plus:active {
+    transform: scale(0.9);
+}
+
+.text-twitter-blue {
+    color: var(--accent-blue);
+}
+
+.badge-verified {
+    background-color: var(--accent-blue);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
