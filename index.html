@@ -6,6 +6,10 @@
     <title>Chat Premium</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
         :root {
             --bg-dark: #0e1621;
@@ -36,8 +40,12 @@
             max-width: 80%; padding: 10px 15px; border-radius: 18px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.2); font-size: 15px;
         }
+        .bubble small { color: var(--accent-blue); font-weight: bold; font-size: 11px; }
         .mine { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 2px; }
         .other { align-self: flex-start; background: var(--bar-dark); border-bottom-left-radius: 2px; }
+
+        /* Audio Player Style */
+        audio { height: 35px; width: 220px; filter: invert(1) hue-rotate(180deg) brightness(1.5); margin-top: 5px; }
 
         /* Barra Inferior */
         .footer {
@@ -52,7 +60,7 @@
 
         .btn-icon { background: none; border: none; color: var(--accent-blue); font-size: 24px; cursor: pointer; }
 
-        /* GAVETA DE VIDRO (Bottom Sheet) */
+        /* GAVETA DE VIDRO */
         #drawer {
             position: fixed; bottom: -300px; left: 0; width: 100%; height: 250px;
             background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -60,24 +68,12 @@
             transition: bottom 0.3s ease; z-index: 100;
             display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; justify-items: center;
         }
-
         #drawer.open { bottom: 0; }
 
-        .drawer-item {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            color: white; font-size: 13px; text-decoration: none;
-        }
+        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: white; font-size: 13px; }
+        .drawer-icon { width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
 
-        .drawer-icon {
-            width: 55px; height: 55px; border-radius: 50%; background: var(--accent-blue);
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-        }
-
-        /* Overlay para fechar a gaveta ao clicar fora */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; z-index: 90;
-        }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 90; }
     </style>
 </head>
 <body>
@@ -85,22 +81,18 @@
     <div class="header">
         <i class="fas fa-bars"></i>
         <div style="margin-left: 20px;">
-            <b>Chat Global</b><br>
+            <b id="chat-name">Chat Global</b><br>
             <small style="color: var(--accent-blue)">online</small>
         </div>
         <button onclick="mudarFundo()" style="margin-left: auto; background: none; border: none; color: white; font-size: 18px;"><i class="fas fa-palette"></i></button>
     </div>
 
-    <div id="chat-container">
-        <div class="bubble other">Bem-vindo ao novo Chat!</div>
-        <div class="bubble mine">Obrigado! O visual está incrível.</div>
-    </div>
+    <div id="chat-container"></div>
 
     <div class="footer">
         <button class="btn-icon" onclick="toggleDrawer()"><i class="fas fa-plus"></i></button>
-        <input type="text" class="input-box" placeholder="Mensagem...">
-        <button class="btn-icon"><i class="fas fa-microphone"></i></button>
-        <button class="btn-icon"><i class="fas fa-paper-plane"></i></button>
+        <input type="text" id="msgInput" class="input-box" placeholder="Mensagem...">
+        <button class="btn-icon" id="btnEnviar"><i class="fas fa-paper-plane"></i></button>
     </div>
 
     <div id="overlay" onclick="toggleDrawer()"></div>
@@ -122,16 +114,67 @@
         </div>
     </div>
 
-    <audio id="pop-sound" src="pop.mp3" preload="auto"></audio>
-
     <script>
+        // 1. CONFIGURAÇÃO FIREBASE
+        var firebaseConfig = {
+            apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y",
+            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        var db = firebase.database().ref("chat_vibe");
+        var meuID = localStorage.getItem("vibe_user") || "Convidado";
+        var somMsg = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+
         // Carrega wallpaper salvo
         window.onload = () => {
             const bg = localStorage.getItem('chat-bg');
             if(bg) document.body.style.backgroundImage = `url(${bg})`;
         };
 
-        // Abre/Fecha Gaveta
+        // 2. FUNÇÃO ENVIAR MENSAGEM
+        document.getElementById('btnEnviar').onclick = function() {
+            var inp = document.getElementById('msgInput');
+            if (inp.value.trim() !== "") {
+                db.push({
+                    nome: meuID,
+                    msg: inp.value,
+                    tipo: "texto",
+                    data: new Date().getTime()
+                });
+                inp.value = "";
+                somMsg.play();
+            }
+        };
+
+        // 3. ESCUTAR MENSAGENS EM TEMPO REAL
+        db.on("value", function(snapshot) {
+            var cont = document.getElementById('chat-container');
+            cont.innerHTML = ''; 
+            
+            snapshot.forEach(function(item) {
+                var m = item.val();
+                var classe = m.nome === meuID ? 'mine' : 'other';
+                
+                if (m.tipo === "audio") {
+                    cont.innerHTML += `<div class="bubble ${classe}">
+                        <small>${m.nome}</small><br>
+                        <audio controls src="${m.url}" onplay="this.load()"></audio>
+                    </div>`;
+                } else {
+                    cont.innerHTML += `<div class="bubble ${classe}">
+                        <small>${m.nome}</small><br>
+                        ${m.msg}
+                    </div>`;
+                }
+            });
+            cont.scrollTop = cont.scrollHeight;
+        });
+
+        // 4. FUNÇÕES DA INTERFACE
         function toggleDrawer() {
             const drawer = document.getElementById('drawer');
             const overlay = document.getElementById('overlay');
@@ -139,7 +182,6 @@
             overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
         }
 
-        // Função para Mudar o Fundo
         function mudarFundo() {
             const up = document.createElement('input');
             up.type = 'file'; up.accept = 'image/*';
@@ -148,21 +190,23 @@
                 reader.onload = () => {
                     localStorage.setItem('chat-bg', reader.result);
                     document.body.style.backgroundImage = `url(${reader.result})`;
-                    toggleDrawer(); // Fecha a gaveta após mudar
+                    toggleDrawer();
                 };
                 reader.readAsDataURL(e.target.files[0]);
             };
             up.click();
         }
 
-        // Função para Agenda Nativa
         async function abrirAgenda() {
             if ('contacts' in navigator) {
                 try {
-                    const props = ['name', 'tel'];
-                    const contacts = await navigator.contacts.select(props, {multiple: false});
-                    if (contacts.length) alert("Selecionado: " + contacts[0].name + " - " + contacts[0].tel[0]);
-                } catch (e) { alert("Acesso à agenda negado ou não suportado."); }
+                    const contacts = await navigator.contacts.select(['name', 'tel'], {multiple: false});
+                    if (contacts.length) {
+                        var tel = contacts[0].tel[0].replace(/\D/g, '');
+                        var nome = contacts[0].name[0];
+                        window.open(`https://wa.me/${tel}?text=Oi ${nome}, me chama no meu novo app: ${window.location.href}`, '_blank');
+                    }
+                } catch (e) { alert("Acesso à agenda negado."); }
             } else {
                 alert("Use o app instalado no celular para acessar contatos.");
             }
