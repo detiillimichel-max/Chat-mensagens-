@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OIO ONE - Messenger</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root { 
+            --fb-blue: #1877f2; 
+            --fb-bg: #f0f2f5; 
+            --fb-white: #ffffff; 
+            --msg-mine: #0084ff; 
+            --msg-other: #e4e6eb; 
+        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--fb-bg); overflow: hidden; }
+        
+        .header { 
+            height: 55px; background: var(--fb-white); display: flex; align-items: center; 
+            padding: 0 15px; border-bottom: 1px solid #dbdbdb; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #chat { 
+            height: calc(100vh - 125px); overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 10px; 
+        }
+
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 20px; font-size: 15px; line-height: 1.4; }
+        .mine { align-self: flex-end; background: var(--msg-mine); color: white; border-bottom-right-radius: 4px; }
+        .other { align-self: flex-start; background: var(--msg-other); color: black; border-bottom-left-radius: 4px; }
+
+        .footer { 
+            height: 70px; background: var(--fb-white); position: fixed; bottom: 0; width: 100%; 
+            display: flex; align-items: center; padding: 0 12px; gap: 10px; border-top: 1px solid #dbdbdb;
+        }
+
+        .in { 
+            flex: 1; background: #f0f2f5; border: none; border-radius: 20px; 
+            padding: 10px 15px; outline: none; font-size: 16px;
+        }
+
+        .btn-fb { background: none; border: none; color: var(--fb-blue); font-size: 22px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fab fa-facebook-messenger" style="color: var(--fb-blue); font-size: 28px;"></i>
+        <div style="margin-left: 12px;">
+            <b style="font-size: 16px;">Chat Global</b><br>
+            <small style="color: #31a24c;">● Online</small>
+        </div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="footer">
+        <button class="btn-fb"><i class="fas fa-plus-circle"></i></button>
+        <input type="text" id="input" class="in" placeholder="Aa">
+        <button class="btn-fb" id="send"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <script>
+        // Sua configuração do Firebase
+        var config = { 
+            apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbltrAXq7Y", 
+            databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/" 
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        var db = firebase.database().ref("mensagens");
+        var user = "Michel";
+
+        // Escutar mensagens
+        db.limitToLast(30).on("value", snapshot => {
+            const container = document.getElementById('chat');
+            container.innerHTML = '';
+            snapshot.forEach(item => {
+                const data = item.val();
+                const type = data.nome === user ? 'mine' : 'other';
+                container.innerHTML += `<div class="msg ${type}">${data.msg}</div>`;
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+
+        // Enviar mensagem
+        document.getElementById('send').onclick = () => {
+            const input = document.getElementById('input');
+            if (input.value.trim() !== "") {
+                db.push({ nome: user, msg: input.value, timestamp: Date.now() });
+                input.value = '';
+            }
+        };
+
+        // CORREÇÃO DO ERRO DO INDEX: Registro seguro do Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log("SW opcional"));
+            });
+        }
+    </script>
+</body>
+</html>
