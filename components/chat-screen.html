@@ -1,16 +1,13 @@
-<div class="chat-wrapper">
-    <div id="chat" class="chat-messages-area"></div>
+<div id="chat" class="chat-messages"></div>
 
-    <div class="footer-controls glass">
-        <button id="btnFoto" class="icon-btn"><i class="fas fa-camera"></i></button>
-        <button id="btnAudio" class="icon-btn"><i class="fas fa-microphone"></i></button>
-        
-        <div class="input-wrapper">
-            <input type="text" id="msgInput" placeholder="Sua vibe..." autocomplete="off">
-        </div>
-
-        <button id="btnEnviar" class="icon-btn send"><i class="fas fa-paper-plane"></i></button>
-    </div>
+<div class="vibe-footer glass">
+    <i class="fas fa-camera icon" id="btnFoto" onclick="abrirGaleria()"></i>
+    <i class="fas fa-microphone icon" id="id="btnAudio" onclick="toggleAudio()"></i>
     
-    <input type="file" id="fotoInput" style="display:none" accept="image/*">
+    <div class="input-container">
+        <input type="text" id="msgInput" placeholder="Sua vibe..." onkeypress="if(event.key=='Enter') enviar()">
+    </div>
+
+    <i class="fas fa-paper-plane icon send" onclick="enviar()"></i>
+    <input type="file" id="fotoInput" style="display:none" onchange="enviarFoto(event)" accept="image/*">
 </div>
