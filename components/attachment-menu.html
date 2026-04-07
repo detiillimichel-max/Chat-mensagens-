@@ -1,0 +1,60 @@
+<div class="attachment-menu fade-in-up">
+    <div class="drag-handle"></div>
+    <div class="attachment-grid">
+        <div class="attach-item" onclick="openGallery()">
+            <div class="attach-icon gallery-bg"><i class="fas fa-image"></i></div>
+            <span>Galeria</span>
+        </div>
+        <div class="attach-item" onclick="openFiles()">
+            <div class="attach-icon file-bg"><i class="fas fa-file"></i></div>
+            <span>Arquivo</span>
+        </div>
+        <div class="attach-item" onclick="openLocation()">
+            <div class="attach-icon location-bg"><i class="fas fa-map-marker-alt"></i></div>
+            <span>Localização</span>
+        </div>
+        <div class="attach-item">
+            <div class="attach-icon contact-bg"><i class="fas fa-user"></i></div>
+            <span>Contato</span>
+        </div>
+        <div class="attach-item">
+            <div class="attach-icon music-bg"><i class="fas fa-headphones"></i></div>
+            <span>Música</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .attachment-menu {
+        background: #17212b; /* Cor luxo dark */
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        padding: 10px 20px 30px;
+        position: fixed;
+        bottom: 0; width: 100%;
+        z-index: 1000;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    }
+    .drag-handle {
+        width: 40px; height: 5px; background: rgba(255,255,255,0.2);
+        border-radius: 10px; margin: 0 auto 15px;
+    }
+    .attachment-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .attach-item {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .attach-icon {
+        width: 60px; height: 60px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; color: white;
+    }
+    .gallery-bg { background: #2196f3; }
+    .file-bg { background: #ff9800; }
+    .location-bg { background: #4caf50; }
+    .contact-bg { background: #00bcd4; }
+    .music-bg { background: #9c27b0; }
+    .attach-item span { font-size: 13px; color: #fff; }
+</style>
+
