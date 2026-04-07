@@ -1,0 +1,64 @@
+<div class="call-overlay fade-in">
+    <div class="call-background"></div>
+    
+    <div class="call-content">
+        <div class="caller-info">
+            <div class="caller-avatar">IR</div>
+            <h2>Ivan Ramos</h2>
+            <span class="call-status">Chamando...</span>
+        </div>
+
+        <div id="remoteVideoContainer" class="video-preview hidden">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay playsinline muted class="self-view"></video>
+        </div>
+
+        <div class="call-actions">
+            <button class="call-btn mute"><i class="fas fa-microphone-slash"></i></button>
+            <button class="call-btn video-toggle"><i class="fas fa-video"></i></button>
+            <button class="call-btn end-call" onclick="closeCall()">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+            <button class="call-btn speaker"><i class="fas fa-volume-up"></i></button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .call-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 2000; background: #0e1621; color: white;
+        display: flex; flex-direction: column; align-items: center; justify-content: space-around;
+    }
+    .call-background {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(to bottom, rgba(14,22,33,0.8), #0e1621), url('media/user-bg.jpg');
+        background-size: cover; filter: blur(20px); z-index: -1;
+    }
+    .caller-info { text-align: center; }
+    .caller-avatar {
+        width: 120px; height: 120px; border-radius: 50%; background: #4a6ea9;
+        margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+        font-size: 40px; font-weight: bold; border: 4px solid rgba(255,255,255,0.1);
+    }
+    .call-status { color: var(--accent-blue); font-weight: bold; letter-spacing: 1px; }
+    
+    .call-actions {
+        display: flex; gap: 20px; padding-bottom: 50px;
+    }
+    .call-btn {
+        width: 60px; height: 60px; border-radius: 50%; border: none;
+        background: rgba(255,255,255,0.1); color: white; font-size: 20px;
+    }
+    .call-btn.end-call { background: #ff3b30; font-size: 24px; }
+    
+    .video-preview {
+        width: 90%; height: 40%; background: #000; border-radius: 15px;
+        position: relative; overflow: hidden;
+    }
+    .self-view {
+        position: absolute; top: 10px; right: 10px; width: 80px; height: 120px;
+        border-radius: 8px; border: 2px solid white; object-fit: cover;
+    }
+    .hidden { display: none; }
+</style>
