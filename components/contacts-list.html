@@ -1,0 +1,54 @@
+<div class="contacts-container fade-in">
+    <div class="search-bar-lite">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar contatos...">
+    </div>
+    
+    <div class="contact-section">
+        <p class="section-label">Seus contatos no OIO Vibe</p>
+        
+        <div class="contact-item">
+            <div class="avatar-circle" style="background: #e91e63;">MM</div>
+            <div class="contact-info">
+                <h4>MMedia Assistência Apple</h4>
+                <span>visto às 08:53</span>
+            </div>
+            <i class="fas fa-comment-alt"></i>
+        </div>
+
+        <div class="contact-item">
+            <div class="avatar-circle" style="background: #2196f3;">AN</div>
+            <div class="contact-info">
+                <h4>Antonio Paulo Ruiz</h4>
+                <span>visto às 08:13</span>
+            </div>
+            <i class="fas fa-comment-alt"></i>
+        </div>
+    </div>
+
+    <button class="btn-invite" onclick="requestContactPermission()">
+        <i class="fas fa-user-plus"></i> Convidar Amigos
+    </button>
+</div>
+
+<style>
+    .contacts-container { padding: 10px; }
+    .section-label { color: var(--accent-blue); font-size: 13px; font-weight: 600; margin: 15px 5px; }
+    .contact-item { 
+        display: flex; align-items: center; gap: 15px; 
+        padding: 12px 5px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .avatar-circle {
+        width: 45px; height: 45px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: bold; color: white;
+    }
+    .contact-info h4 { margin: 0; font-size: 16px; }
+    .contact-info span { font-size: 12px; color: var(--text-secondary); }
+    .btn-invite {
+        width: 100%; margin-top: 20px; padding: 15px;
+        background: rgba(36, 129, 204, 0.1); border: none;
+        color: var(--accent-blue); border-radius: 12px; font-weight: bold;
+    }
+</style>
+
