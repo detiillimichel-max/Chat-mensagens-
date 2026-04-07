@@ -1,24 +1,26 @@
-<div class="explore-container">
-    <div class="grid-item"><img src="media/sample1.jpg"></div>
-    <div class="grid-item"><img src="media/sample2.jpg"></div>
-    <div class="grid-item"><img src="media/sample3.jpg"></div>
+<div class="explore-container fade-in">
+    <div class="grid-layout" id="dynamic-grid">
+        <div class="grid-placeholder">
+            <i class="fas fa-th-large"></i>
+            <p>Sua vitrine de fotos está pronta.</p>
+        </div>
+    </div>
 </div>
 
 <style>
-.explore-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-    padding: 2px;
-}
-.grid-item {
-    aspect-ratio: 1 / 1;
-    background: #17212b;
-}
-.grid-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
+    .explore-container { padding: 10px; }
+    .grid-layout {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .grid-placeholder {
+        grid-column: span 3;
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+        background: rgba(255,255,255,0.02);
+    }
 </style>
-
