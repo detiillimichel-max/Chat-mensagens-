@@ -1,25 +1,17 @@
-// Configurações do Banco de Dados
-const dbConfig = {
-    // Aqui você colocará suas chaves do Supabase/Firebase depois
+// OIO ONE - Conexão Centralizada com Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyAslIIn6h6NdVhuHdwXjS1EhAbItrAXq7Y",
+    databaseURL: "https://vibe-app-bbba2-default-rtdb.firebaseio.com/",
+    projectId: "vibe-app-bbba2"
 };
 
-// Lógica de Login por Nome e Senha
-async function loginUser(username, password) {
-    console.log(`Tentando login para: ${username}`);
-    // Simulação de autenticação
-    if(username && password) {
-        localStorage.setItem('user_logged', username);
-        return true;
-    }
-    return false;
+// Inicializa o Firebase apenas uma vez
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
 
-// Verifica se o usuário está logado ao abrir o app
-function checkAuth() {
-    const user = localStorage.getItem('user_logged');
-    if (!user) {
-        console.log("Usuário não logado. Redirecionando...");
-        // Aqui você chamaria sua tela de login
-    }
-}
+// Exporta as referências para o app.js
+const db = firebase.database();
+const storageRef = db.ref("chat_vibe_compartilhado");
 
+console.log("🚀 Banco de Dados Vibe Conectado");
