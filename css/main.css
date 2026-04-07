@@ -101,3 +101,46 @@ body, html {
 }
 
 .hidden { display: none !important; }
+/* Força a barra de mensagem a aparecer no rodapé */
+.footer-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(15, 22, 33, 0.9); /* Tom escuro premium */
+    backdrop-filter: blur(10px); /* Efeito vidro */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 9999;
+}
+
+.input-wrapper {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.input-wrapper input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 8px 15px;
+    color: white;
+    outline: none;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #1a73e8; /* Azul Vibe */
+    font-size: 20px;
+    padding: 5px;
+    cursor: pointer;
+}
+
+/* Espaço para as mensagens não ficarem atrás da barra */
+.chat-messages-area {
+    padding-bottom: 70px;
+}
