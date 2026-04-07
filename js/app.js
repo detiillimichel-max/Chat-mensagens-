@@ -1,130 +1,103 @@
-const SUPABASE_URL = 'https://uqdwtzlkqaosnweyoyit.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_uafBQD1aJ3w8_eq4meOsNQ_wzk8TwhA';
+// OIO ONE - LÓGICA CENTRAL (js/app.js)
+import { db } from './database.js';
 
-const App = {
-    user: JSON.parse(localStorage.getItem('oio_session')),
+// PEGA O USUÁRIO REAL LOGADO. SE NÃO TIVER NINGUÉM, MANDA PARA O LOGIN.
+const usuarioAtivo = localStorage.getItem("vibe_user");
 
-    async init() {
-        if (!this.user) return this.runFirstLogin();
-        this.loadScreen('contacts-list'); // Começa carregando os contatos reais
-        this.bindEvents();
-    },
+if (!usuarioAtivo) {
+    window.location.href = "login.html"; // Segurança: impede uso sem nome
+}
 
-    // 📱 NAVEGAÇÃO E CARREGAMENTO REAL DE COMPONENTES
-    async loadScreen(name) {
-        const main = document.getElementById('main-content');
-        const viewTitle = document.getElementById('view-title');
+// 1. CARREGAR MÓDULO DE CHAT
+async function iniciarApp() {
+    const palco = document.getElementById('chat-container'); 
+    try {
+        const resp = await fetch('components/chat-screen.html');
+        if (!resp.ok) throw new Error("Erro ao carregar chat-screen.html");
         
-        try {
-            // 1. Busca o HTML do componente na pasta
-            const response = await fetch(`components/${name}.html`);
-            let html = await response.text();
-            
-            // 2. Se for a lista de contatos, injeta os dados do Supabase dentro dela
-            if (name === 'contacts-list') {
-                main.innerHTML = html; // Primeiro carrega a "casca" da lista
-                await this.renderRealContacts(); 
-            } else {
-                main.innerHTML = html;
-            }
+        palco.innerHTML = await resp.text();
+        
+        // Atualiza o nome no topo do chat dinamicamente
+        const nomeTopo = document.getElementById('chat-nome-contato');
+        if (nomeTopo) nomeTopo.innerText = "Conversa"; 
 
-            if(viewTitle) viewTitle.innerText = name.replace('-screen', '').toUpperCase();
-            this.updateActiveNav(name);
-        } catch (err) {
-            console.error("Erro ao carregar:", name, err);
-        }
-    },
-
-    async renderRealContacts() {
-        const listContainer = document.querySelector('.contacts-list-container') || document.getElementById('main-content');
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=*`, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-        });
-        const profiles = await res.json();
-
-        let html = '';
-        profiles.forEach(p => {
-            html += `
-            <div class="contact-item" onclick="App.loadScreen('chat-screen')">
-                <div class="avatar-circle">${p.username[0].toUpperCase()}</div>
-                <div class="contact-info">
-                    <h4>${p.username}</h4>
-                    <p>visto recentemente</p>
-                </div>
-                <i class="fas fa-chevron-right"></i>
-            </div>`;
-        });
-        listContainer.innerHTML = html;
-    },
-
-    // 📞 FUNÇÕES DE HARDWARE (ÁUDIO E VÍDEO)
-    async startVideo() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            const callHtml = await fetch('components/call-screen.html').then(r => r.text());
-            document.body.insertAdjacentHTML('beforeend', callHtml);
-            document.getElementById('localVideo').srcObject = stream;
-        } catch (e) { alert("Câmera ocupada ou negada."); }
-    },
-
-    async startAudio() {
-        try {
-            await navigator.mediaDevices.getUserMedia({ audio: true });
-            alert("Microfone ativado. Gravando...");
-        } catch (e) { alert("Microfone não disponível."); }
-    },
-
-    // 🖼️ GALERIA E PAPEL DE PAREDE
-    openGallery() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            alert("Imagem selecionada: " + file.name + ". Enviando...");
-        };
-        input.click();
-    },
-
-    updateActiveNav(screen) {
-        document.querySelectorAll('.nav-item').forEach(nav => {
-            nav.classList.toggle('active', nav.dataset.screen === screen);
-        });
-    },
-
-    bindEvents() {
-        document.addEventListener('click', (e) => {
-            const target = e.target;
-            
-            // Botões de navegação inferior
-            const nav = target.closest('.nav-item');
-            if (nav) this.loadScreen(nav.dataset.screen);
-
-            // Botão flutuante "+"
-            if (target.id === 'btn-plus-social') this.openGallery();
-
-            // Ícones dentro do Chat (Câmera e Mic)
-            if (target.closest('.fa-video')) this.startVideo();
-            if (target.closest('.fa-microphone')) this.startAudio();
-            if (target.closest('.fa-paperclip')) this.openGallery();
-            
-            // Fechar chamada
-            if (target.closest('.end-call')) {
-                const overlay = document.querySelector('.call-overlay');
-                if(overlay) overlay.remove();
-            }
-        });
-    },
-
-    runFirstLogin() {
-        const name = prompt("Seu Nome:");
-        const pin = prompt("PIN de 4 dígitos:");
-        if(name && pin) {
-            this.user = { name, pin };
-            localStorage.setItem('oio_session', JSON.stringify(this.user));
-            this.init();
-        }
+        configurarChat();
+        escutarMensagens();
+    } catch (e) {
+        console.error("Erro na inicialização:", e);
     }
+}
+
+// 2. CONFIGURAR EVENTOS DO CHAT
+function configurarChat() {
+    const btnEnviar = document.getElementById('btnEnviar');
+    const inputMsg = document.getElementById('inputVibe');
+    const btnGaleria = document.getElementById('triggerGaleria');
+    const inputOculto = document.getElementById('inputOcultoGaleria');
+
+    if (btnEnviar && inputMsg) {
+        btnEnviar.onclick = () => {
+            const texto = inputMsg.value;
+            if (texto.trim()) {
+                enviarParaFirebase({ tipo: 'texto', conteudo: texto });
+                inputMsg.value = "";
+            }
+        };
+    }
+
+    if (btnGaleria && inputOculto) {
+        btnGaleria.onclick = () => inputOculto.click();
+        inputOculto.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => enviarParaFirebase({ tipo: 'foto', conteudo: reader.result });
+            reader.readAsDataURL(file);
+        };
+    }
+}
+
+// 3. FUNÇÃO DE ENVIO (USA O USUÁRIO DO LOCALSTORAGE)
+function enviarParaFirebase(dados) {
+    db.ref("chat_vibe").push({
+        autor: usuarioAtivo, 
+        tipo: dados.tipo,
+        msg: dados.conteudo,
+        timestamp: Date.now()
+    });
+}
+
+// 4. ESCUTAR MENSAGENS EM TEMPO REAL
+function escutarMensagens() {
+    const feed = document.getElementById('mensagens-feed');
+    if (!feed) return;
+
+    db.ref("chat_vibe").limitToLast(20).on("child_added", (snap) => {
+        const m = snap.val();
+        const bolha = document.createElement('div');
+        
+        // Define se a bolha é de quem envia ou recebe
+        bolha.className = m.autor === usuarioAtivo ? 'message-sent' : 'message-received';
+        
+        bolha.innerHTML = `
+            <div class="bubble">
+                ${m.tipo === 'foto' ? `<img src="${m.msg}" style="max-width:200px; border-radius:10px;">` : m.msg}
+                <span class="time">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+        `;
+        feed.appendChild(bolha);
+        feed.scrollTop = feed.scrollHeight;
+    });
+}
+
+// 5. LÓGICA DE CHAMADAS
+window.iniciarChamada = function(tipo) {
+    db.ref("chamadas_ativas").set({
+        de: usuarioAtivo,
+        tipo: tipo,
+        status: 'chamando',
+        timestamp: Date.now()
+    });
+    window.location.href = "components/call-screen.html";
 };
 
-App.init();
+window.onload = iniciarApp;
