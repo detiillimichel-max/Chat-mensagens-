@@ -1,117 +1,137 @@
-// js/app.js - O Coração do OIO Vibe
-
+// js/app.js - O MOTOR REAL OIO VIBE
 const App = {
-    user: {
-        email: '',
-        name: '',
-        pin: '',
-        isLoggedIn: false
-    },
+    user: null,
+    currentScreen: 'contacts-list',
 
-    init() {
-        console.log("OIO Vibe Iniciado");
+    async init() {
+        console.log("Sistema OIO Vibe Operacional");
         this.checkAuth();
         this.bindEvents();
     },
 
-    // 🔐 SISTEMA DE SEGURANÇA E LOGIN
+    // 🔐 SEGURANÇA: LOGIN E PIN 4 DÍGITOS
     checkAuth() {
-        const savedUser = localStorage.getItem('oio_user');
-        if (!savedUser) {
-            this.showLoginFlow();
+        const saved = localStorage.getItem('oio_session');
+        if (!saved) {
+            this.runFirstLogin();
         } else {
-            this.user = JSON.parse(savedUser);
-            this.showPinEntry();
+            this.user = JSON.parse(saved);
+            this.askPin();
         }
     },
 
-    async showLoginFlow() {
-        const email = prompt("Bem-vindo! Digite seu e-mail para começar:");
-        if (email) {
-            this.user.email = email;
-            const name = prompt("Como você quer ser chamado no app?");
-            this.user.name = name || "Usuário Vibe";
-            
-            const pin = prompt("Crie sua senha de segurança (4 dígitos):");
-            if (pin && pin.length === 4) {
-                this.user.pin = pin;
-                this.user.isLoggedIn = true;
-                localStorage.setItem('oio_user', JSON.stringify(this.user));
-                this.loadComponent('chats');
-            } else {
-                alert("Senha inválida. Tente novamente.");
-                this.showLoginFlow();
-            }
+    runFirstLogin() {
+        const email = prompt("E-mail para cadastro:");
+        const name = prompt("Seu nome de exibição:");
+        const pin = prompt("Crie sua senha de 4 dígitos (PIN):");
+
+        if (email && name && pin?.length === 4) {
+            this.user = { email, name, pin };
+            localStorage.setItem('oio_session', JSON.stringify(this.user));
+            this.loadScreen('contacts-list');
+        } else {
+            alert("Dados inválidos. Tente novamente.");
+            this.runFirstLogin();
         }
     },
 
-    showPinEntry() {
+    askPin() {
         const entry = prompt(`Olá ${this.user.name}, digite seu PIN de 4 dígitos:`);
         if (entry === this.user.pin) {
-            this.loadComponent('chats');
+            this.loadScreen('contacts-list');
         } else {
             alert("PIN Incorreto!");
-            this.showPinEntry();
+            this.askPin();
         }
     },
 
-    // 📱 NAVEGAÇÃO ENTRE COMPONENTES
-    async loadComponent(name) {
-        const container = document.getElementById('main-content');
+    // 📱 NAVEGAÇÃO REAL (BUSCA OS ARQUIVOS QUE VOCÊ CRIOU)
+    async loadScreen(screenName) {
+        const main = document.getElementById('main-content');
+        const title = document.getElementById('view-title');
+        
         try {
-            const response = await fetch(`components/${name}-screen.html`);
-            if (name === 'chats') { // Se for a lista de chats, usamos o contacts-list
-                 const respList = await fetch(`components/contacts-list.html`);
-                 container.innerHTML = await respList.text();
-            } else {
-                container.innerHTML = await response.text();
-            }
-            this.updateActiveTab(name);
+            const response = await fetch(`components/${screenName}.html`);
+            if (!response.ok) throw new Error();
+            const html = await response.text();
+            
+            main.innerHTML = html;
+            this.currentScreen = screenName;
+            
+            // Atualiza o título no topo conforme a tela
+            const labels = {
+                'contacts-list': 'Conversas',
+                'explore-grid': 'Explorar',
+                'podcast-card': 'Podcasts',
+                'profile-screen': 'Meu Perfil'
+            };
+            if(title) title.innerText = labels[screenName] || 'OIO Vibe';
+            
+            this.updateUI(screenName);
         } catch (err) {
-            console.error("Erro ao carregar componente:", err);
+            console.error("Erro ao carregar componente:", screenName);
         }
     },
 
-    updateActiveTab(name) {
+    updateUI(screenName) {
         document.querySelectorAll('.nav-item').forEach(nav => {
-            nav.classList.toggle('active', nav.dataset.screen === name);
+            nav.classList.toggle('active', nav.getAttribute('data-screen') === screenName);
         });
     },
 
-    // 📞 ENGENHARIA DE COMUNICAÇÃO (VOZ E VÍDEO)
-    async startCall(type) {
-        alert(`Iniciando chamada de ${type} via Wi-Fi...`);
-        // Aqui entra a lógica de WebRTC
-        const callScreen = await fetch('components/call-screen.html');
-        document.body.insertAdjacentHTML('beforeend', await callScreen.text());
-        
-        if (type === 'video') {
-            document.getElementById('remoteVideoContainer').classList.remove('hidden');
+    // 🎙️ FUNÇÃO DE ÁUDIO (GRAVAÇÃO REAL)
+    async startAudio() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            alert("Microfone ativado! Gravando...");
+            
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+                alert("Áudio de 3s capturado para teste!");
+            }, 3000);
+        } catch (err) {
+            alert("Erro ao acessar microfone: " + err);
         }
     },
 
-    // 🎙️ GRAVAÇÃO DE ÁUDIO
-    startAudioRecord() {
-        console.log("Gravando áudio...");
-        const micBtn = document.getElementById('mainActionBtn');
-        micBtn.style.background = '#ff3b30'; // Vermelho gravando
-        // Lógica de MediaRecorder aqui
+    // 📞 FUNÇÃO DE CHAMADA (ABRE O VÍDEO)
+    async startVideo() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            // Busca a peça de chamada que você criou
+            const callPage = await fetch('components/call-screen.html');
+            const html = await callPage.text();
+            document.body.insertAdjacentHTML('beforeend', html);
+            
+            const localVideo = document.getElementById('localVideo');
+            if (localVideo) {
+                localVideo.srcObject = stream;
+                document.getElementById('remoteVideoContainer').classList.remove('hidden');
+            }
+        } catch (err) {
+            alert("Erro na câmera: " + err);
+        }
     },
 
     bindEvents() {
-        // Eventos de clique na navegação inferior
+        // Cliques na barra inferior
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                this.loadComponent(item.dataset.screen);
-            });
+            item.onclick = () => this.loadScreen(item.getAttribute('data-screen'));
+        });
+
+        // Delegação de eventos para botões que entram dinamicamente
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.fa-microphone')) this.startAudio();
+            if (e.target.closest('.fa-video')) this.startVideo();
+            if (e.target.closest('.end-call')) {
+                const overlay = document.querySelector('.call-overlay');
+                if (overlay) overlay.remove();
+            }
         });
     }
 };
 
-// Inicializa quando o DOM estiver pronto
+// Inicia tudo
 document.addEventListener('DOMContentLoaded', () => App.init());
-
-// Funções globais para os botões do HTML
-window.startVoiceCall = () => App.startCall('voz');
-window.startVideoCall = () => App.startCall('video');
-window.closeCall = () => document.querySelector('.call-overlay').remove();
