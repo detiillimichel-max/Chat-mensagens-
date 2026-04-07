@@ -1,63 +1,117 @@
-// js/app.js - O Maestro do OIO VIBE
+// js/app.js - O Coração do OIO Vibe
 
-// Função para carregar os componentes .html da pasta components/
-async function loadComponent(name) {
-    try {
-        const response = await fetch(`components/${name}.html`);
-        if (!response.ok) throw new Error('Erro ao carregar componente');
-        const html = await response.text();
-        document.getElementById('main-content').innerHTML = html;
-    } catch (err) {
-        console.error(err);
-        document.getElementById('main-content').innerHTML = '<p style="padding:20px; color:gray;">Erro ao carregar visual...</p>';
+const App = {
+    user: {
+        email: '',
+        name: '',
+        pin: '',
+        isLoggedIn: false
+    },
+
+    init() {
+        console.log("OIO Vibe Iniciado");
+        this.checkAuth();
+        this.bindEvents();
+    },
+
+    // 🔐 SISTEMA DE SEGURANÇA E LOGIN
+    checkAuth() {
+        const savedUser = localStorage.getItem('oio_user');
+        if (!savedUser) {
+            this.showLoginFlow();
+        } else {
+            this.user = JSON.parse(savedUser);
+            this.showPinEntry();
+        }
+    },
+
+    async showLoginFlow() {
+        const email = prompt("Bem-vindo! Digite seu e-mail para começar:");
+        if (email) {
+            this.user.email = email;
+            const name = prompt("Como você quer ser chamado no app?");
+            this.user.name = name || "Usuário Vibe";
+            
+            const pin = prompt("Crie sua senha de segurança (4 dígitos):");
+            if (pin && pin.length === 4) {
+                this.user.pin = pin;
+                this.user.isLoggedIn = true;
+                localStorage.setItem('oio_user', JSON.stringify(this.user));
+                this.loadComponent('chats');
+            } else {
+                alert("Senha inválida. Tente novamente.");
+                this.showLoginFlow();
+            }
+        }
+    },
+
+    showPinEntry() {
+        const entry = prompt(`Olá ${this.user.name}, digite seu PIN de 4 dígitos:`);
+        if (entry === this.user.pin) {
+            this.loadComponent('chats');
+        } else {
+            alert("PIN Incorreto!");
+            this.showPinEntry();
+        }
+    },
+
+    // 📱 NAVEGAÇÃO ENTRE COMPONENTES
+    async loadComponent(name) {
+        const container = document.getElementById('main-content');
+        try {
+            const response = await fetch(`components/${name}-screen.html`);
+            if (name === 'chats') { // Se for a lista de chats, usamos o contacts-list
+                 const respList = await fetch(`components/contacts-list.html`);
+                 container.innerHTML = await respList.text();
+            } else {
+                container.innerHTML = await response.text();
+            }
+            this.updateActiveTab(name);
+        } catch (err) {
+            console.error("Erro ao carregar componente:", err);
+        }
+    },
+
+    updateActiveTab(name) {
+        document.querySelectorAll('.nav-item').forEach(nav => {
+            nav.classList.toggle('active', nav.dataset.screen === name);
+        });
+    },
+
+    // 📞 ENGENHARIA DE COMUNICAÇÃO (VOZ E VÍDEO)
+    async startCall(type) {
+        alert(`Iniciando chamada de ${type} via Wi-Fi...`);
+        // Aqui entra a lógica de WebRTC
+        const callScreen = await fetch('components/call-screen.html');
+        document.body.insertAdjacentHTML('beforeend', await callScreen.text());
+        
+        if (type === 'video') {
+            document.getElementById('remoteVideoContainer').classList.remove('hidden');
+        }
+    },
+
+    // 🎙️ GRAVAÇÃO DE ÁUDIO
+    startAudioRecord() {
+        console.log("Gravando áudio...");
+        const micBtn = document.getElementById('mainActionBtn');
+        micBtn.style.background = '#ff3b30'; // Vermelho gravando
+        // Lógica de MediaRecorder aqui
+    },
+
+    bindEvents() {
+        // Eventos de clique na navegação inferior
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.loadComponent(item.dataset.screen);
+            });
+        });
     }
-}
-
-// Lógica de Troca de Abas de Luxo
-function changeTab(tabName, element) {
-    // 1. Muda o título no topo
-    const viewTitle = document.getElementById('view-title');
-    const btnPlus = document.getElementById('btn-plus-social');
-    
-    // 2. Atualiza qual ícone está azul (ativo) na barra de baixo
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    element.classList.add('active');
-
-    // 3. Carrega o conteúdo certo
-    switch(tabName) {
-        case 'chats':
-            viewTitle.innerText = "Conversas";
-            btnPlus.classList.add('hidden'); // Esconde o "+" no chat
-            loadComponent('chat-bubble');
-            break;
-            
-        case 'explore':
-            viewTitle.innerText = "Descobrir";
-            btnPlus.classList.remove('hidden'); // Mostra o "+" para postar foto
-            loadComponent('explore-grid');
-            break;
-            
-        case 'podcasts':
-            viewTitle.innerText = "Pílulas de Voz";
-            btnPlus.classList.remove('hidden'); // Mostra o "+" para gravar áudio
-            loadComponent('podcast-card');
-            break;
-            
-        case 'profile':
-            viewTitle.innerText = "Meu Perfil";
-            btnPlus.classList.add('hidden');
-            // Como perfil é fixo, podemos injetar direto
-            document.getElementById('main-content').innerHTML = `
-                <div class="glass-card" style="margin:20px; text-align:center;">
-                    <h3>Michel Dev</h3>
-                    <p style="color:var(--text-secondary)">Mobile Architect</p>
-                </div>`;
-            break;
-    }
-}
-
-// Inicia o App nos Chats por padrão
-window.onload = () => {
-    const defaultTab = document.querySelector('.nav-item');
-    changeTab('chats', defaultTab);
 };
+
+// Inicializa quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+// Funções globais para os botões do HTML
+window.startVoiceCall = () => App.startCall('voz');
+window.startVideoCall = () => App.startCall('video');
+window.closeCall = () => document.querySelector('.call-overlay').remove();
