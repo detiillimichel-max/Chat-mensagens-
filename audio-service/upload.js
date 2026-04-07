@@ -1,13 +1,17 @@
-async function uploadPodcast(audioBlob, userId) {
-    const fileName = `podcast_${userId}_${Date.now()}.opus`;
-    
-    console.log("Enviando pílula de voz para a nuvem...");
-    
-    // Exemplo de envio (Supabase/Firebase logic)
-    // const { data, error } = await supabase.storage.from('podcasts').upload(fileName, audioBlob);
-    
-    if (audioBlob.size > 2000000) { // Alerta se passar de 2MB
-        console.warn("Áudio um pouco pesado, mas enviado!");
-    }
-}
+function enviarMidia(arquivo, tipo) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const base64 = event.target.result;
+        const dados = {
+            autor: localStorage.getItem("vibe_user") || "Michel",
+            data: Date.now(),
+            tipo: tipo
+        };
+        
+        if (tipo === 'audio') dados.audio = base64;
+        if (tipo === 'foto') dados.imagem = base64;
 
+        firebase.database().ref("chat_vibe").push(dados);
+    };
+    reader.readAsDataURL(arquivo);
+}
