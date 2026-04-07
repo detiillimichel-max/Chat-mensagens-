@@ -1,49 +1,31 @@
-<div class="glass-card podcast-item">
-    <div class="podcast-header">
-        <img src="media/icons/user-placeholder.png" class="user-avatar">
-        <div class="user-info">
-            <span class="username">@Michel_Dev <i class="badge-verified"></i></span>
-            <span class="timestamp">há 2 min</span>
+<div class="glass-card podcast-item fade-in">
+    <div class="pod-cover">
+        <i class="fas fa-microphone-alt"></i>
+    </div>
+    <div class="pod-details">
+        <h4 class="pod-title">Pílula de Voz #1</h4>
+        <p class="pod-meta">Michel • 05:00 min</p>
+        <div class="pod-progress-bar">
+            <div class="progress-fill"></div>
         </div>
-        <button class="btn-follow-twitter">Seguir</button>
     </div>
-
-    <div class="audio-visualizer">
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="play-btn-center">▶</div>
-    </div>
-
-    <div class="podcast-footer">
-        <span>❤️ 12</span>
-        <span>💬 5</span>
-        <span>✈️</span>
+    <div class="pod-action">
+        <i class="fas fa-play-circle"></i>
     </div>
 </div>
 
 <style>
-.podcast-item { margin: 15px; border-top: 2px solid var(--accent-blue); }
-.audio-visualizer {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.wave-bar {
-    width: 4px;
-    height: 20px;
-    background: var(--accent-blue);
-    border-radius: 2px;
-}
-.btn-follow-twitter {
-    background: var(--accent-blue);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 12px;
-}
+    .podcast-item {
+        display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
+    }
+    .pod-cover {
+        width: 50px; height: 50px; background: var(--accent-blue);
+        border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    }
+    .pod-details { flex: 1; }
+    .pod-title { font-size: 15px; margin: 0; }
+    .pod-meta { font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
+    .pod-progress-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .progress-fill { width: 30%; height: 100%; background: var(--accent-blue); }
+    .pod-action { font-size: 24px; color: var(--accent-blue); }
 </style>
-
