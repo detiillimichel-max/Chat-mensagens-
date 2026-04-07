@@ -1,0 +1,75 @@
+<div class="chat-wrapper">
+    <div class="chat-header">
+        <div class="user-info">
+            <i class="fas fa-arrow-left" onclick="backToMessages()"></i>
+            <div class="chat-avatar-mini">IR</div>
+            <div>
+                <h4>Ivan Ramos</h4>
+                <span class="status">visto recentemente</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <i class="fas fa-phone-alt" onclick="startVoiceCall()"></i>
+            <i class="fas fa-video" onclick="startVideoCall()"></i>
+            <i class="fas fa-ellipsis-v"></i>
+        </div>
+    </div>
+
+    <div class="chat-content" id="chatContent">
+        <div class="message-received">
+            <div class="bubble">
+                Olá! Esta é uma mensagem com o fundo da sua galeria aparecendo suavemente.
+                <span class="time">14:30</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <i class="fas fa-paperclip" onclick="toggleAttachmentMenu()"></i>
+        <div class="input-wrapper">
+            <input type="text" placeholder="Mensagem" id="msgInput">
+            <i class="far fa-smile"></i>
+        </div>
+        <div class="action-btn" id="mainActionBtn">
+            <i class="fas fa-microphone" id="micIcon"></i>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-wrapper { 
+        display: flex; flex-direction: column; height: 100vh;
+        background: url('media/wallpaper.jpg'); background-size: cover; 
+    }
+    .chat-header { 
+        background: rgba(23, 33, 43, 0.95); padding: 10px 15px;
+        display: flex; align-items: center; justify-content: space-between;
+        backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar-mini { width: 35px; height: 35px; border-radius: 50%; background: #4a6ea9; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .header-actions { display: flex; gap: 20px; font-size: 18px; color: var(--accent-blue); }
+
+    .chat-content { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .message-received .bubble {
+        background: #182533; color: white; padding: 10px 15px;
+        border-radius: 15px 15px 15px 5px; max-width: 80%; position: relative;
+    }
+    .time { display: block; font-size: 10px; color: #808d97; text-align: right; margin-top: 5px; }
+
+    .chat-input-area {
+        background: #17212b; padding: 10px; display: flex; align-items: center; gap: 12px;
+    }
+    .input-wrapper {
+        flex: 1; background: #242f3d; border-radius: 20px;
+        display: flex; align-items: center; padding: 5px 15px;
+    }
+    .input-wrapper input { 
+        background: none; border: none; color: white; flex: 1; padding: 8px 0; outline: none;
+    }
+    .action-btn {
+        width: 45px; height: 45px; background: #2481cc; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; color: white;
+    }
+</style>
+
